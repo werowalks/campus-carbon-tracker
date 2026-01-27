@@ -1,0 +1,355 @@
+import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useEnergy } from '@/contexts/EnergyContext';
+import { DEVICE_CATEGORIES, TIME_INTERVALS, calculateCarbonEmission, calculateEnergyKWh } from '@/types';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
+import { 
+  Zap, 
+  Clock, 
+  Laptop, 
+  Lightbulb, 
+  Thermometer, 
+  Projector, 
+  Printer, 
+  FlaskConical, 
+  Utensils, 
+  Plug,
+  PlusCircle,
+  Trash2
+} from 'lucide-react';
+
+const iconMap: Record<string, React.ComponentType<any>> = {
+  laptop: Laptop,
+  lightbulb: Lightbulb,
+  thermometer: Thermometer,
+  projector: Projector,
+  printer: Printer,
+  'flask-conical': FlaskConical,
+  utensils: Utensils,
+  plug: Plug,
+};
+
+interface DeviceEntry {
+  id: string;
+  deviceName: string;
+  category: string;
+  wattage: string;
+  timeInterval: string;
+  customMinutes: string;
+}
+
+export default function EnergyLogForm() {
+  const { user } = useAuth();
+  const { addLog, logs } = useEnergy();
+  
+  const [devices, setDevices] = useState<DeviceEntry[]>([
+    { id: '1', deviceName: '', category: '', wattage: '', timeInterval: '', customMinutes: '' }
+  ]);
+
+  const addDevice = () => {
+    setDevices([
+      ...devices,
+      { id: Date.now().toString(), deviceName: '', category: '', wattage: '', timeInterval: '', customMinutes: '' }
+    ]);
+  };
+
+  const removeDevice = (id: string) => {
+    if (devices.length > 1) {
+      setDevices(devices.filter(d => d.id !== id));
+    }
+  };
+
+  const updateDevice = (id: string, field: keyof DeviceEntry, value: string) => {
+    setDevices(devices.map(d => {
+      if (d.id === id) {
+        const updated = { ...d, [field]: value };
+        
+        // Auto-fill wattage when category is selected
+        if (field === 'category') {
+          const category = DEVICE_CATEGORIES.find(c => c.id === value);
+          if (category) {
+            updated.wattage = category.avgWattage.toString();
+          }
+        }
+        
+        return updated;
+      }
+      return d;
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    let successCount = 0;
+
+    devices.forEach(device => {
+      if (!device.deviceName || !device.category || !device.wattage || !device.timeInterval) {
+        return;
+      }
+
+      const duration = device.timeInterval === '0' 
+        ? parseInt(device.customMinutes) 
+        : parseInt(device.timeInterval);
+
+      if (!duration || duration <= 0) {
+        return;
+      }
+
+      addLog({
+        userId: user?.id || '',
+        deviceName: device.deviceName,
+        category: device.category,
+        wattage: parseInt(device.wattage),
+        duration,
+        timestamp: new Date(),
+      });
+
+      successCount++;
+    });
+
+    if (successCount > 0) {
+      toast.success(`${successCount} device${successCount > 1 ? 's' : ''} logged successfully!`);
+      setDevices([{ id: '1', deviceName: '', category: '', wattage: '', timeInterval: '', customMinutes: '' }]);
+    } else {
+      toast.error('Please fill in all required fields');
+    }
+  };
+
+  const calculatePreview = (device: DeviceEntry) => {
+    const duration = device.timeInterval === '0' 
+      ? parseInt(device.customMinutes) || 0
+      : parseInt(device.timeInterval) || 0;
+    const wattage = parseInt(device.wattage) || 0;
+
+    if (!duration || !wattage) return null;
+
+    return {
+      energy: calculateEnergyKWh(wattage, duration),
+      carbon: calculateCarbonEmission(wattage, duration),
+    };
+  };
+
+  // Recent logs for user
+  const recentLogs = logs
+    .filter(log => log.userId === user?.id)
+    .slice(0, 5);
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <div>
+        <h1 className="text-3xl font-display font-bold">Log Energy Consumption</h1>
+        <p className="text-muted-foreground mt-1">
+          Record your device usage to track your carbon footprint
+        </p>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Form */}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Add Devices</CardTitle>
+              <CardDescription>
+                Log multiple devices at once. Each entry records your energy consumption.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {devices.map((device, index) => (
+                  <div key={device.id} className="p-4 border rounded-lg space-y-4 relative">
+                    {devices.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => removeDevice(device.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
+                        {index + 1}
+                      </div>
+                      <span className="text-sm font-medium">Device {index + 1}</span>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Device Name *</Label>
+                        <Input
+                          placeholder="e.g., Classroom AC Unit 1"
+                          value={device.deviceName}
+                          onChange={(e) => updateDevice(device.id, 'deviceName', e.target.value)}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Category *</Label>
+                        <Select
+                          value={device.category}
+                          onValueChange={(value) => updateDevice(device.id, 'category', value)}
+                        >
+                          <SelectTrigger className="bg-popover">
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover z-50">
+                            {DEVICE_CATEGORIES.map((cat) => {
+                              const Icon = iconMap[cat.icon] || Plug;
+                              return (
+                                <SelectItem key={cat.id} value={cat.id}>
+                                  <div className="flex items-center gap-2">
+                                    <Icon className="w-4 h-4" />
+                                    {cat.name}
+                                  </div>
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Power Rating (Watts) *</Label>
+                        <div className="relative">
+                          <Zap className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            type="number"
+                            placeholder="e.g., 1500"
+                            className="pl-10"
+                            value={device.wattage}
+                            onChange={(e) => updateDevice(device.id, 'wattage', e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Time Used *</Label>
+                        <Select
+                          value={device.timeInterval}
+                          onValueChange={(value) => updateDevice(device.id, 'timeInterval', value)}
+                        >
+                          <SelectTrigger className="bg-popover">
+                            <SelectValue placeholder="Select duration" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover z-50">
+                            {TIME_INTERVALS.map((interval) => (
+                              <SelectItem key={interval.value} value={interval.value.toString()}>
+                                {interval.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {device.timeInterval === '0' && (
+                        <div className="space-y-2 sm:col-span-2">
+                          <Label>Custom Duration (minutes)</Label>
+                          <div className="relative">
+                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input
+                              type="number"
+                              placeholder="Enter minutes"
+                              className="pl-10"
+                              value={device.customMinutes}
+                              onChange={(e) => updateDevice(device.id, 'customMinutes', e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Preview */}
+                    {calculatePreview(device) && (
+                      <div className="p-3 bg-muted rounded-lg flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Estimated Impact:</span>
+                        <div className="flex gap-4">
+                          <span className="text-sm font-medium">
+                            {calculatePreview(device)!.energy.toFixed(3)} kWh
+                          </span>
+                          <span className="text-sm font-medium text-primary">
+                            {calculatePreview(device)!.carbon.toFixed(4)} kg CO₂
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={addDevice}
+                >
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  Add Another Device
+                </Button>
+
+                <Button type="submit" className="w-full eco-gradient">
+                  Log All Devices
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Logs Sidebar */}
+        <div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Recent Logs</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {recentLogs.length > 0 ? (
+                <div className="space-y-3">
+                  {recentLogs.map((log) => {
+                    const category = DEVICE_CATEGORIES.find(c => c.id === log.category);
+                    const Icon = category ? iconMap[category.icon] || Plug : Plug;
+                    return (
+                      <div key={log.id} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                        <div className="p-2 bg-background rounded-lg">
+                          <Icon className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{log.deviceName}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {log.duration} min • {calculateEnergyKWh(log.wattage, log.duration).toFixed(3)} kWh
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No logs yet. Start by adding your first device!
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Tips Card */}
+          <Card className="mt-4 bg-primary/5 border-primary/20">
+            <CardContent className="pt-6">
+              <h4 className="font-semibold text-sm mb-2">💡 Quick Tips</h4>
+              <ul className="text-xs text-muted-foreground space-y-1">
+                <li>• Check device labels for accurate wattage</li>
+                <li>• Log regularly for better tracking</li>
+                <li>• Group similar devices together</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -7,10 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "preview": "vite preview --host 0.0.0.0 --port 4173",
     "lint": "eslint .",
-    "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "clean": "rm -rf dist node_modules/.vite",
+    "deploy:check": "npm run build && npm run preview"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

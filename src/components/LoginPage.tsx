@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Leaf, Mail, Lock, User } from 'lucide-react';
 import { toast } from 'sonner';
+import campusBackground from '@/assets/campus-background.jpg';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -50,8 +51,19 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen hero-gradient flex items-center justify-center p-4">
-      <div className="w-full max-w-md animate-slide-up">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 relative"
+      style={{
+        backgroundImage: `url(${campusBackground})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      {/* Dark overlay for better readability */}
+      <div className="absolute inset-0 bg-black/40" />
+      
+      <div className="w-full max-w-md animate-slide-up relative z-10">
         {/* Logo & Title */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl eco-gradient mb-4 eco-shadow">

@@ -1,13 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnergy } from '@/contexts/EnergyContext';
 import { TIME_INTERVALS, calculateCarbonEmission, calculateEnergyKWh } from '@/types';
-import { CAMPUS_DEVICE_CATEGORIES, CAMPUS_DEVICES, CATEGORY_WATTAGE, getDevicesByCategory } from '@/data/campusDevices';
+import { CAMPUS_DEVICE_CATEGORIES, CATEGORY_WATTAGE, getDevicesByCategory } from '@/data/campusDevices';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DeviceCombobox } from '@/components/DeviceCombobox';
 import { toast } from 'sonner';
 import { 
   Zap, 
@@ -194,22 +195,13 @@ export default function EnergyLogForm() {
 
                         <div className="space-y-2">
                           <Label>Device *</Label>
-                          <Select
+                          <DeviceCombobox
+                            devices={availableDevices}
                             value={device.deviceName}
                             onValueChange={(value) => updateDevice(device.id, 'deviceName', value)}
                             disabled={!device.category}
-                          >
-                            <SelectTrigger className="bg-popover">
-                              <SelectValue placeholder={device.category ? "Select device" : "Select category first"} />
-                            </SelectTrigger>
-                            <SelectContent className="bg-popover z-50 max-h-[300px]">
-                              {availableDevices.map((dev) => (
-                                <SelectItem key={dev.name} value={dev.name}>
-                                  {dev.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                            placeholder={device.category ? "Search devices..." : "Select category first"}
+                          />
                         </div>
 
                         <div className="space-y-2">

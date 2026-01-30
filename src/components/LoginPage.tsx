@@ -60,8 +60,8 @@ export default function LoginPage() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* Dark overlay for better readability */}
-      <div className="absolute inset-0 bg-black/40" />
+      {/* Dark overlay with blur for better readability */}
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
       
       <div className="w-full max-w-md animate-slide-up relative z-10">
         {/* Logo & Title */}

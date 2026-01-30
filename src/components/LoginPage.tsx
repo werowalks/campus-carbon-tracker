@@ -9,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Leaf, Mail, Lock, User } from 'lucide-react';
 import { toast } from 'sonner';
 import campusBackground from '@/assets/campus-background.jpg';
-import ecoCampusLogo from '@/assets/eco-campus-logo-white.png';
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login, register } = useAuth();
@@ -66,13 +65,13 @@ export default function LoginPage() {
       <div className="w-full max-w-md animate-slide-up relative z-10">
         {/* Logo & Title */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-primary mb-4 shadow-xl">
-            <img src={ecoCampusLogo} alt="Eco Campus Logo" className="w-16 h-16 object-contain" />
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary mb-4 shadow-xl">
+            <Leaf className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-3xl font-display font-bold text-foreground">
+          <h1 className="text-3xl font-display font-bold text-white">
             Carbon Footprint Dashboard
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-white/80 mt-2">
             Sustainable Campus Initiative
           </p>
         </div>

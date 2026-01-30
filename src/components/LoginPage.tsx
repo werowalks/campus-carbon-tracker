@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Leaf, Mail, Lock, User } from 'lucide-react';
 import { toast } from 'sonner';
 import campusBackground from '@/assets/campus-background.jpg';
-import ecoTechLogo from '@/assets/eco-tech-logo.png';
+import ecoCampusLogo from '@/assets/eco-campus-logo.png';
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login, register } = useAuth();
@@ -67,7 +67,7 @@ export default function LoginPage() {
         {/* Logo & Title */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white/90 mb-4 shadow-xl">
-            <img src={ecoTechLogo} alt="EcoTech Logo" className="w-14 h-14 object-contain" />
+            <img src={ecoCampusLogo} alt="Eco Campus Logo" className="w-14 h-14 object-contain" />
           </div>
           <h1 className="text-3xl font-display font-bold text-foreground">
             Carbon Footprint Dashboard

@@ -1,58 +1,131 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { EnergyLog, DashboardStats, calculateCarbonEmission, calculateEnergyKWh, DEVICE_CATEGORIES } from '@/types';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
+import { DashboardStats, calculateCarbonEmission, calculateEnergyKWh, DEVICE_CATEGORIES } from '@/types';
+
+export interface EnergyLog {
+  id: string;
+  user_id: string;
+  device_name: string;
+  category: string;
+  wattage: number;
+  duration: number; // in minutes
+  timestamp: Date;
+  carbon_emission: number; // in kg CO2
+}
 
 interface EnergyContextType {
   logs: EnergyLog[];
-  addLog: (log: Omit<EnergyLog, 'id' | 'carbonEmission'>) => void;
-  deleteLog: (id: string) => void;
+  isLoading: boolean;
+  addLog: (log: Omit<EnergyLog, 'id' | 'carbon_emission' | 'user_id'>) => Promise<void>;
+  deleteLog: (id: string) => Promise<void>;
   getStats: (userId?: string) => DashboardStats;
   getAllLogs: () => EnergyLog[];
+  refreshLogs: () => Promise<void>;
 }
 
 const EnergyContext = createContext<EnergyContextType | undefined>(undefined);
 
-// Generate some sample data for demo
-const generateSampleData = (): EnergyLog[] => {
-  const logs: EnergyLog[] = [];
-  const categories = DEVICE_CATEGORIES;
-  const now = new Date();
-
-  for (let i = 0; i < 50; i++) {
-    const category = categories[Math.floor(Math.random() * categories.length)];
-    const duration = [15, 30, 60, 120, 240][Math.floor(Math.random() * 5)];
-    const wattage = category.avgWattage * (0.8 + Math.random() * 0.4);
-    const daysAgo = Math.floor(Math.random() * 30);
-    const timestamp = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
-
-    logs.push({
-      id: `sample-${i}`,
-      userId: Math.random() > 0.5 ? '1' : '2',
-      deviceName: `${category.name} Unit ${Math.floor(Math.random() * 10) + 1}`,
-      category: category.id,
-      wattage: Math.round(wattage),
-      duration,
-      timestamp,
-      carbonEmission: calculateCarbonEmission(wattage, duration),
-    });
-  }
-
-  return logs;
-};
-
 export function EnergyProvider({ children }: { children: ReactNode }) {
-  const [logs, setLogs] = useState<EnergyLog[]>(generateSampleData());
+  const [logs, setLogs] = useState<EnergyLog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { user, isAdmin } = useAuth();
 
-  const addLog = (logData: Omit<EnergyLog, 'id' | 'carbonEmission'>) => {
+  const fetchLogs = useCallback(async () => {
+    if (!user) {
+      setLogs([]);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('energy_logs')
+        .select('*')
+        .order('timestamp', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching logs:', error);
+        return;
+      }
+
+      const formattedLogs: EnergyLog[] = (data || []).map((log) => ({
+        id: log.id,
+        user_id: log.user_id,
+        device_name: log.device_name,
+        category: log.category,
+        wattage: log.wattage,
+        duration: log.duration,
+        timestamp: new Date(log.timestamp),
+        carbon_emission: Number(log.carbon_emission),
+      }));
+
+      setLogs(formattedLogs);
+    } catch (error) {
+      console.error('Error in fetchLogs:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchLogs();
+  }, [fetchLogs]);
+
+  const addLog = async (logData: Omit<EnergyLog, 'id' | 'carbon_emission' | 'user_id'>) => {
+    if (!user) {
+      console.error('No user logged in');
+      return;
+    }
+
     const carbonEmission = calculateCarbonEmission(logData.wattage, logData.duration);
-    const newLog: EnergyLog = {
-      ...logData,
-      id: Date.now().toString(),
-      carbonEmission,
-    };
-    setLogs(prev => [newLog, ...prev]);
+
+    const { data, error } = await supabase
+      .from('energy_logs')
+      .insert({
+        user_id: user.id,
+        device_name: logData.device_name,
+        category: logData.category,
+        wattage: logData.wattage,
+        duration: logData.duration,
+        carbon_emission: carbonEmission,
+        timestamp: logData.timestamp.toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding log:', error);
+      throw error;
+    }
+
+    if (data) {
+      const newLog: EnergyLog = {
+        id: data.id,
+        user_id: data.user_id,
+        device_name: data.device_name,
+        category: data.category,
+        wattage: data.wattage,
+        duration: data.duration,
+        timestamp: new Date(data.timestamp),
+        carbon_emission: Number(data.carbon_emission),
+      };
+      setLogs(prev => [newLog, ...prev]);
+    }
   };
 
-  const deleteLog = (id: string) => {
+  const deleteLog = async (id: string) => {
+    const { error } = await supabase
+      .from('energy_logs')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting log:', error);
+      throw error;
+    }
+
     setLogs(prev => prev.filter(log => log.id !== id));
   };
 
@@ -62,7 +135,8 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     const weekStart = new Date(todayStart.getTime() - 7 * 24 * 60 * 60 * 1000);
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const filteredLogs = userId ? logs.filter(log => log.userId === userId) : logs;
+    // Filter logs by user if specified, otherwise use all (for admin view)
+    const filteredLogs = userId ? logs.filter(log => log.user_id === userId) : logs;
 
     const todayLogs = filteredLogs.filter(log => new Date(log.timestamp) >= todayStart);
     const weekLogs = filteredLogs.filter(log => new Date(log.timestamp) >= weekStart);
@@ -70,7 +144,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
 
     const calculateTotals = (logList: EnergyLog[]) => ({
       energy: logList.reduce((sum, log) => sum + calculateEnergyKWh(log.wattage, log.duration), 0),
-      carbon: logList.reduce((sum, log) => sum + log.carbonEmission, 0),
+      carbon: logList.reduce((sum, log) => sum + log.carbon_emission, 0),
     });
 
     const todayTotals = calculateTotals(todayLogs);
@@ -80,10 +154,10 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     // Top devices
     const deviceUsage: Record<string, { usage: number; category: string }> = {};
     monthLogs.forEach(log => {
-      if (!deviceUsage[log.deviceName]) {
-        deviceUsage[log.deviceName] = { usage: 0, category: log.category };
+      if (!deviceUsage[log.device_name]) {
+        deviceUsage[log.device_name] = { usage: 0, category: log.category };
       }
-      deviceUsage[log.deviceName].usage += calculateEnergyKWh(log.wattage, log.duration);
+      deviceUsage[log.device_name].usage += calculateEnergyKWh(log.wattage, log.duration);
     });
 
     const topDevices = Object.entries(deviceUsage)
@@ -121,8 +195,12 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
 
   const getAllLogs = () => logs;
 
+  const refreshLogs = async () => {
+    await fetchLogs();
+  };
+
   return (
-    <EnergyContext.Provider value={{ logs, addLog, deleteLog, getStats, getAllLogs }}>
+    <EnergyContext.Provider value={{ logs, isLoading, addLog, deleteLog, getStats, getAllLogs, refreshLogs }}>
       {children}
     </EnergyContext.Provider>
   );

@@ -1,33 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Leaf, Mail, Lock, User } from 'lucide-react';
+import { Leaf, Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { z } from 'zod';
 import campusBackground from '@/assets/campus-background.jpg';
+
+// Validation schemas
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+const registerSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
+
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login, register } = useAuth();
+  const { login, register, isAuthenticated, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [registerForm, setRegisterForm] = useState({ email: '', password: '', name: '' });
+  const [errors, setErrors] = useState<{ login?: string; register?: string }>({});
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, authLoading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+    
+    // Validate input
+    const result = loginSchema.safeParse(loginForm);
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors;
+      const errorMessage = Object.values(fieldErrors).flat()[0];
+      setErrors({ login: errorMessage });
+      return;
+    }
+
     setIsLoading(true);
 
-    const result = await login(loginForm.email, loginForm.password);
+    const response = await login(loginForm.email, loginForm.password);
     
-    if (result.success) {
+    if (response.success) {
       toast.success('Welcome back!');
       navigate('/dashboard');
     } else {
-      toast.error(result.error || 'Login failed');
+      setErrors({ login: response.error || 'Login failed' });
     }
     
     setIsLoading(false);
@@ -35,19 +69,43 @@ export default function LoginPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+
+    // Validate input
+    const result = registerSchema.safeParse(registerForm);
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors;
+      const errorMessage = Object.values(fieldErrors).flat()[0];
+      setErrors({ register: errorMessage });
+      return;
+    }
+
     setIsLoading(true);
 
-    const result = await register(registerForm.email, registerForm.password, registerForm.name);
+    const response = await register(registerForm.email, registerForm.password, registerForm.name);
     
-    if (result.success) {
-      toast.success('Account created successfully!');
-      navigate('/dashboard');
+    if (response.success) {
+      if (response.error?.includes('check your email')) {
+        setShowConfirmation(true);
+        toast.info('Please check your email to confirm your account');
+      } else {
+        toast.success('Account created successfully!');
+        navigate('/dashboard');
+      }
     } else {
-      toast.error(result.error || 'Registration failed');
+      setErrors({ register: response.error || 'Registration failed' });
     }
     
     setIsLoading(false);
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div 
@@ -76,6 +134,23 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {/* Email Confirmation Message */}
+        {showConfirmation && (
+          <Card className="mb-4 border-green-500 bg-green-50">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <div>
+                  <p className="font-medium text-green-800">Check your email</p>
+                  <p className="text-sm text-green-700">
+                    We've sent you a confirmation link. Please check your inbox to verify your account.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Auth Card */}
         <Card className="border-0 shadow-xl">
           <Tabs defaultValue="login" className="w-full">
@@ -88,6 +163,12 @@ export default function LoginPage() {
             <CardContent>
               <TabsContent value="login" className="mt-0">
                 <form onSubmit={handleLogin} className="space-y-4">
+                  {errors.login && (
+                    <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                      <AlertCircle className="w-4 h-4 text-destructive" />
+                      <p className="text-sm text-destructive">{errors.login}</p>
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label htmlFor="login-email">Email</Label>
                     <div className="relative">
@@ -95,11 +176,12 @@ export default function LoginPage() {
                       <Input
                         id="login-email"
                         type="email"
-                        placeholder="you@campus.edu"
+                        placeholder="you@example.com"
                         className="pl-10"
                         value={loginForm.email}
                         onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
                         required
+                        autoComplete="email"
                       />
                     </div>
                   </div>
@@ -115,6 +197,7 @@ export default function LoginPage() {
                         value={loginForm.password}
                         onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
                         required
+                        autoComplete="current-password"
                       />
                     </div>
                   </div>
@@ -122,18 +205,16 @@ export default function LoginPage() {
                     {isLoading ? 'Signing in...' : 'Sign In'}
                   </Button>
                 </form>
-
-                <div className="mt-6 p-4 bg-muted rounded-lg">
-                  <p className="text-xs text-muted-foreground mb-2">Demo Accounts:</p>
-                  <div className="text-xs space-y-1">
-                    <p><strong>Admin:</strong> admin@campus.edu / admin123</p>
-                    <p><strong>User:</strong> student@campus.edu / student123</p>
-                  </div>
-                </div>
               </TabsContent>
 
               <TabsContent value="register" className="mt-0">
                 <form onSubmit={handleRegister} className="space-y-4">
+                  {errors.register && (
+                    <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                      <AlertCircle className="w-4 h-4 text-destructive" />
+                      <p className="text-sm text-destructive">{errors.register}</p>
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label htmlFor="register-name">Full Name</Label>
                     <div className="relative">
@@ -146,6 +227,7 @@ export default function LoginPage() {
                         value={registerForm.name}
                         onChange={(e) => setRegisterForm({ ...registerForm, name: e.target.value })}
                         required
+                        autoComplete="name"
                       />
                     </div>
                   </div>
@@ -156,11 +238,12 @@ export default function LoginPage() {
                       <Input
                         id="register-email"
                         type="email"
-                        placeholder="you@campus.edu"
+                        placeholder="you@example.com"
                         className="pl-10"
                         value={registerForm.email}
                         onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
                         required
+                        autoComplete="email"
                       />
                     </div>
                   </div>
@@ -177,8 +260,10 @@ export default function LoginPage() {
                         onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
                         required
                         minLength={6}
+                        autoComplete="new-password"
                       />
                     </div>
+                    <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
                   </div>
                   <Button type="submit" className="w-full eco-gradient" disabled={isLoading}>
                     {isLoading ? 'Creating account...' : 'Create Account'}
@@ -189,7 +274,7 @@ export default function LoginPage() {
           </Tabs>
         </Card>
 
-        <p className="text-center text-xs text-muted-foreground mt-6">
+        <p className="text-center text-xs text-white/60 mt-6">
           By continuing, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>

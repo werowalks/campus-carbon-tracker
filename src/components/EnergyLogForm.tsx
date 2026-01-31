@@ -71,14 +71,14 @@ export default function EnergyLogForm() {
     return getDevicesByCategory(category);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     let successCount = 0;
 
-    devices.forEach(device => {
+    for (const device of devices) {
       if (!device.deviceName || !device.category || !device.wattage || !device.timeInterval) {
-        return;
+        continue;
       }
 
       const duration = device.timeInterval === '0' 
@@ -86,20 +86,22 @@ export default function EnergyLogForm() {
         : parseInt(device.timeInterval);
 
       if (!duration || duration <= 0) {
-        return;
+        continue;
       }
 
-      addLog({
-        userId: user?.id || '',
-        deviceName: device.deviceName,
-        category: device.category,
-        wattage: parseInt(device.wattage),
-        duration,
-        timestamp: new Date(),
-      });
-
-      successCount++;
-    });
+      try {
+        await addLog({
+          device_name: device.deviceName,
+          category: device.category,
+          wattage: parseInt(device.wattage),
+          duration,
+          timestamp: new Date(),
+        });
+        successCount++;
+      } catch (error) {
+        console.error('Error adding log:', error);
+      }
+    }
 
     if (successCount > 0) {
       toast.success(`${successCount} device${successCount > 1 ? 's' : ''} logged successfully!`);
@@ -125,7 +127,7 @@ export default function EnergyLogForm() {
 
   // Recent logs for user
   const recentLogs = logs
-    .filter(log => log.userId === user?.id)
+    .filter(log => log.user_id === user?.id)
     .slice(0, 5);
 
   return (
@@ -305,7 +307,7 @@ export default function EnergyLogForm() {
                         <Plug className="w-4 h-4 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{log.deviceName}</p>
+                        <p className="text-sm font-medium truncate">{log.device_name}</p>
                         <p className="text-xs text-muted-foreground">
                           {log.duration} min • {calculateEnergyKWh(log.wattage, log.duration).toFixed(3)} kWh
                         </p>

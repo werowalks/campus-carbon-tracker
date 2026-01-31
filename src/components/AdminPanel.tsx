@@ -26,7 +26,7 @@ import { Download, Search, Filter, Shield, Trash2, FileSpreadsheet, Calendar } f
 import { format } from 'date-fns';
 
 export default function AdminPanel() {
-  const { user } = useAuth();
+  const { isAdmin } = useAuth();
   const { getAllLogs, deleteLog, getStats } = useEnergy();
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,7 +34,7 @@ export default function AdminPanel() {
   const [dateFilter, setDateFilter] = useState('all');
 
   // Only admins can access this page
-  if (user?.role !== 'admin') {
+  if (!isAdmin) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -43,7 +43,7 @@ export default function AdminPanel() {
 
   // Filter logs
   const filteredLogs = logs.filter(log => {
-    const matchesSearch = log.deviceName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = log.device_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'all' || log.category === categoryFilter;
     
     let matchesDate = true;
@@ -72,12 +72,12 @@ export default function AdminPanel() {
     const rows = filteredLogs.map(log => [
       format(new Date(log.timestamp), 'yyyy-MM-dd'),
       format(new Date(log.timestamp), 'HH:mm'),
-      log.deviceName,
+      log.device_name,
       DEVICE_CATEGORIES.find(c => c.id === log.category)?.name || log.category,
       log.wattage,
       log.duration,
       calculateEnergyKWh(log.wattage, log.duration).toFixed(4),
-      log.carbonEmission.toFixed(4),
+      log.carbon_emission.toFixed(4),
     ]);
 
     const csvContent = [
@@ -110,7 +110,7 @@ export default function AdminPanel() {
       ['SUMMARY'],
       [`Total Records: ${filteredLogs.length}`],
       [`Total Energy: ${filteredLogs.reduce((sum, log) => sum + calculateEnergyKWh(log.wattage, log.duration), 0).toFixed(2)} kWh`],
-      [`Total Carbon: ${filteredLogs.reduce((sum, log) => sum + log.carbonEmission, 0).toFixed(2)} kg CO2`],
+      [`Total Carbon: ${filteredLogs.reduce((sum, log) => sum + log.carbon_emission, 0).toFixed(2)} kg CO2`],
       [''],
       ['DETAILED DATA'],
     ];
@@ -118,12 +118,12 @@ export default function AdminPanel() {
     const rows = filteredLogs.map(log => [
       format(new Date(log.timestamp), 'yyyy-MM-dd'),
       format(new Date(log.timestamp), 'HH:mm'),
-      log.deviceName,
+      log.device_name,
       DEVICE_CATEGORIES.find(c => c.id === log.category)?.name || log.category,
       log.wattage,
       log.duration,
       calculateEnergyKWh(log.wattage, log.duration).toFixed(4),
-      log.carbonEmission.toFixed(4),
+      log.carbon_emission.toFixed(4),
     ]);
 
     const csvContent = [
@@ -145,9 +145,13 @@ export default function AdminPanel() {
     toast.success(`Exported ${filteredLogs.length} records to Excel`);
   };
 
-  const handleDelete = (id: string) => {
-    deleteLog(id);
-    toast.success('Log entry deleted');
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteLog(id);
+      toast.success('Log entry deleted');
+    } catch (error) {
+      toast.error('Failed to delete log entry');
+    }
   };
 
   return (
@@ -186,7 +190,7 @@ export default function AdminPanel() {
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold">{new Set(logs.map(l => l.userId)).size}</div>
+            <div className="text-2xl font-bold">{new Set(logs.map(l => l.user_id)).size}</div>
             <p className="text-sm text-muted-foreground">Active Users</p>
           </CardContent>
         </Card>
@@ -274,7 +278,7 @@ export default function AdminPanel() {
                       <TableCell className="text-sm">
                         {format(new Date(log.timestamp), 'MMM d, yyyy HH:mm')}
                       </TableCell>
-                      <TableCell className="font-medium">{log.deviceName}</TableCell>
+                      <TableCell className="font-medium">{log.device_name}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {DEVICE_CATEGORIES.find(c => c.id === log.category)?.name || log.category}
                       </TableCell>
@@ -284,7 +288,7 @@ export default function AdminPanel() {
                         {calculateEnergyKWh(log.wattage, log.duration).toFixed(3)} kWh
                       </TableCell>
                       <TableCell className="text-right font-medium text-primary">
-                        {log.carbonEmission.toFixed(4)} kg
+                        {log.carbon_emission.toFixed(4)} kg
                       </TableCell>
                       <TableCell>
                         <Button

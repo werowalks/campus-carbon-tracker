@@ -25,7 +25,7 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, profile, isAuthenticated, isLoading, isAdmin, logout } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -47,7 +47,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { name: 'Log Energy', href: '/log', icon: PlusCircle },
   ];
 
-  if (user?.role === 'admin') {
+  if (isAdmin) {
     navigation.push({ name: 'Admin Panel', href: '/admin', icon: Shield });
   }
 
@@ -95,21 +95,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <User className="w-4 h-4 text-primary" />
                 </div>
                 <span className="hidden sm:block text-sm font-medium">
-                  {user?.name}
+                  {profile?.name || user?.email}
                 </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-popover">
               <DropdownMenuLabel>
                 <div className="flex flex-col">
-                  <span>{user?.name}</span>
+                  <span>{profile?.name || 'User'}</span>
                   <span className="text-xs text-muted-foreground font-normal">
                     {user?.email}
                   </span>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {user?.role === 'admin' && (
+              {isAdmin && (
                 <DropdownMenuItem className="text-primary">
                   <Shield className="w-4 h-4 mr-2" />
                   Administrator

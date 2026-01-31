@@ -1,79 +1,193 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User } from '@/types';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+
+export type AppRole = 'admin' | 'user';
+
+export interface UserProfile {
+  id: string;
+  user_id: string;
+  email: string;
+  name: string;
+  role: AppRole;
+}
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
+  profile: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isAdmin: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock users for demo purposes
-const MOCK_USERS: (User & { password: string })[] = [
-  { id: '1', email: 'admin@campus.edu', password: 'admin123', name: 'Admin User', role: 'admin' },
-  { id: '2', email: 'student@campus.edu', password: 'student123', name: 'Student User', role: 'user' },
-];
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Check for saved session
-    const savedUser = localStorage.getItem('carbonDashboardUser');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+  const fetchProfile = async (userId: string) => {
+    try {
+      // Fetch profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        return null;
+      }
+
+      // Fetch role
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .single();
+
+      if (roleError) {
+        console.error('Error fetching role:', roleError);
+      }
+
+      const userProfile: UserProfile = {
+        id: profileData.id,
+        user_id: profileData.user_id,
+        email: profileData.email,
+        name: profileData.name,
+        role: (roleData?.role as AppRole) || 'user',
+      };
+
+      return userProfile;
+    } catch (error) {
+      console.error('Error in fetchProfile:', error);
+      return null;
     }
-    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Defer profile fetch to avoid deadlock
+        if (session?.user) {
+          setTimeout(() => {
+            fetchProfile(session.user.id).then(setProfile);
+          }, 0);
+        } else {
+          setProfile(null);
+        }
+        
+        setIsLoading(false);
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        fetchProfile(session.user.id).then((profile) => {
+          setProfile(profile);
+          setIsLoading(false);
+        });
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
 
-    const foundUser = MOCK_USERS.find(u => u.email === email && u.password === password);
-    
-    if (foundUser) {
-      const { password: _, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
-      localStorage.setItem('carbonDashboardUser', JSON.stringify(userWithoutPassword));
+      if (error) {
+        console.error('Login error:', error);
+        return { success: false, error: error.message };
+      }
+
+      if (data.user) {
+        const profile = await fetchProfile(data.user.id);
+        setProfile(profile);
+      }
+
       return { success: true };
+    } catch (error) {
+      console.error('Unexpected login error:', error);
+      return { success: false, error: 'An unexpected error occurred' };
     }
-    
-    return { success: false, error: 'Invalid email or password' };
   };
 
   const register = async (email: string, password: string, name: string): Promise<{ success: boolean; error?: string }> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            name: name.trim(),
+          },
+        },
+      });
 
-    if (MOCK_USERS.some(u => u.email === email)) {
-      return { success: false, error: 'Email already registered' };
+      if (error) {
+        console.error('Registration error:', error);
+        if (error.message.includes('already registered')) {
+          return { success: false, error: 'This email is already registered. Please sign in instead.' };
+        }
+        return { success: false, error: error.message };
+      }
+
+      // Check if email confirmation is required
+      if (data.user && !data.session) {
+        return { success: true, error: 'Please check your email to confirm your account.' };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Unexpected registration error:', error);
+      return { success: false, error: 'An unexpected error occurred' };
     }
-
-    const newUser: User = {
-      id: Date.now().toString(),
-      email,
-      name,
-      role: 'user',
-    };
-
-    MOCK_USERS.push({ ...newUser, password });
-    setUser(newUser);
-    localStorage.setItem('carbonDashboardUser', JSON.stringify(newUser));
-    return { success: true };
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('carbonDashboardUser');
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setProfile(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, register, logout }}>
+    <AuthContext.Provider 
+      value={{ 
+        user, 
+        session,
+        profile,
+        isAuthenticated: !!user, 
+        isLoading, 
+        isAdmin: profile?.role === 'admin',
+        login, 
+        register, 
+        logout 
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

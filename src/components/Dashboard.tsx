@@ -20,11 +20,11 @@ const CHART_COLORS = [
 ];
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, profile, isAdmin } = useAuth();
   const { getStats } = useEnergy();
   
   // Get user-specific stats for regular users, all stats for admins
-  const stats = getStats(user?.role === 'admin' ? undefined : user?.id);
+  const stats = getStats(isAdmin ? undefined : user?.id);
 
   const pieData = stats.categoryBreakdown.map((item, index) => ({
     name: item.category,
@@ -42,7 +42,7 @@ export default function Dashboard() {
       {/* Welcome Header */}
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-display font-bold">
-          Welcome back, {user?.name?.split(' ')[0]}! 👋
+          Welcome back, {profile?.name?.split(' ')[0] || 'User'}! 👋
         </h1>
         <p className="text-muted-foreground">
           Track your campus energy consumption and carbon footprint

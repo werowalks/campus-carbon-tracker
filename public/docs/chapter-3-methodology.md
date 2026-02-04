@@ -75,6 +75,39 @@ The questionnaire employs a five-point Likert scale to measure respondent agreem
 **Administration Protocol:**
 The survey will be administered electronically following a two-week pilot testing period, during which participants will have the opportunity to explore all system features. This exposure period ensures that respondents can provide informed evaluations based on actual usage experience rather than first impressions.
 
+**Survey Form Structure:**
+
+The evaluator survey form is composed of six (6) sections, each designed to capture specific aspects of the system evaluation:
+
+| Section | Purpose | Description |
+|---------|---------|-------------|
+| **1. Evaluator Information** | Demographic and Role Collection | This section collects basic demographic and role-related information about the evaluators for documentation and reference purposes. All responses are treated with strict confidentiality and are used solely for academic analysis. |
+| **2. Functionality** | ISO 25010 – Functional Suitability | This section evaluates the extent to which the system performs its intended functions. It assesses the accuracy of displayed data, the proper operation of navigation elements and integrated components, and the overall reliability of system features including energy logging, carbon calculation, and dashboard visualization. |
+| **3. Usability** | ISO 25010 – Usability and User Experience | This section measures the ease of use and learnability of the system. It focuses on navigation clarity, interface organization, content readability, and the logical flow of information across the dashboard and form components. |
+| **4. Efficiency** | ISO 25010 – Performance Efficiency | This section examines how efficiently users are able to complete tasks within the system. It evaluates system responsiveness, dashboard loading time, form submission speed, and the seamless integration between the logging interface and visualization components. |
+| **5. Aesthetics and Accessibility** | ISO 25010 – Portability and Accessibility Quality | This section assesses the visual appeal, consistency, and accessibility of the system. It considers layout design, readability, inclusivity, and alignment with the sustainability theme of Lyceum of the Philippines University–Manila, ensuring that the platform can be effectively used by a diverse group of users across different devices. |
+| **6. Open-Ended Feedback** | Qualitative Insights | This section allows evaluators to provide qualitative feedback, insights, and recommendations for system improvement. Responses from this section serve as supplementary data to identify strengths, limitations, and potential enhancements of the proposed system. |
+
+**Section Details:**
+
+*Section 1: Evaluator Information*
+Gathers respondent profile data including name (optional), department or college affiliation, role classification (Facilities Personnel, Office Representative, or Student), and prior experience with sustainability tracking systems. This demographic information enables cross-tabulation analysis to identify whether user perceptions vary across different stakeholder groups.
+
+*Section 2: Functionality (Functional Suitability)*
+Contains Likert-scale items that assess whether the system correctly performs its specified functions. Evaluators rate the accuracy of energy consumption calculations, the correctness of carbon emission conversions, the reliability of data persistence, and the consistency of dashboard statistics with submitted logs.
+
+*Section 3: Usability (User Experience)*
+Measures the cognitive effort required to learn and operate the system. Items address the intuitiveness of the navigation menu, the clarity of form labels and instructions, the discoverability of features, and the overall user satisfaction with the interaction design.
+
+*Section 4: Efficiency (Performance)*
+Evaluates temporal aspects of system interaction. Respondents rate the speed of page transitions, the responsiveness of form submissions, the loading time of chart visualizations, and the perceived fluidity of the overall user experience.
+
+*Section 5: Aesthetics and Accessibility*
+Captures perceptions of visual design quality and inclusive access. Items cover color scheme appropriateness, typography legibility, mobile responsiveness, contrast ratios for readability, and the thematic alignment with environmental sustainability messaging.
+
+*Section 6: Open-Ended Feedback*
+Provides three open-response prompts: (1) "What features did you find most useful?", (2) "What difficulties or frustrations did you encounter?", and (3) "What improvements would you recommend?" These qualitative responses undergo thematic analysis to supplement the quantitative findings.
+
 ### 3.1.3 Device Inventory Analysis
 
 Device inventory analysis was conducted to establish a comprehensive catalog of common electrical equipment found within the campus environment. This empirical technique involved the systematic documentation of device categories, representative appliances, and their corresponding power ratings.

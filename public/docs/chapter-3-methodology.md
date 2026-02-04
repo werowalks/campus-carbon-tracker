@@ -1,283 +1,306 @@
 # CHAPTER 3: DESIGN AND DEVELOPMENT METHODOLOGY
 
+This chapter presents the methods and procedures employed in developing Campus Watt Watch. It covers the data gathering techniques, system requirements, architectural design, and the testing framework adopted throughout the development process.
+
+---
+
 ## 3.1 Methods of Data Gathering
 
-The development of Campus Watt Watch employed multiple data gathering techniques to ensure the system accurately addresses user needs and institutional requirements.
+Several data gathering techniques were utilized to ensure that the system addresses user needs while adhering to established sustainability reporting standards.
 
 ### 3.1.1 Document Analysis
 
-Existing literature on carbon emission factors, energy consumption patterns, and sustainability reporting standards were reviewed. The Philippine grid emission factor of **0.7 kg CO₂ per kWh** was adopted based on Department of Energy publications and international GHG Protocol guidelines.
+A review of existing literature on carbon emission factors and energy consumption patterns was conducted prior to system development. The Philippine grid emission factor was determined through an analysis of publications from the Department of Energy (DOE) and documentation from the Institute for Global Environmental Strategies (IGES).
+
+The adopted emission factor of **0.7 kg CO₂ per kWh** reflects the country's current energy mix, which remains heavily dependent on coal and natural gas (DOE, 2022). This value aligns with the Greenhouse Gas (GHG) Protocol guidelines for Scope 2 emissions reporting, making it appropriate for institutional carbon footprint tracking.
 
 ### 3.1.2 Survey Questionnaire
 
-A structured questionnaire based on the **ISO 25010** software quality model will be administered to evaluate the system's functional suitability, usability, security, and performance. Respondents include:
+A structured questionnaire anchored on the **ISO 25010** software quality model will be administered to evaluate system quality across multiple dimensions: functional suitability, usability, security, and performance efficiency. The target respondents include:
 
-- Campus facilities personnel (5 respondents)
-- Office representatives from various departments (10 respondents)
-- Student pilot users (15 respondents)
+| Respondent Group | Number of Participants |
+|------------------|------------------------|
+| Campus Facilities Personnel | 5 |
+| Office Representatives | 10 |
+| Student Pilot Users | 15 |
+
+The questionnaire employs a five-point Likert scale, with responses ranging from *Strongly Disagree* (1) to *Strongly Agree* (5).
 
 ### 3.1.3 Device Inventory Analysis
 
-Common campus electrical devices were cataloged and categorized with their average wattage ratings:
+An inventory of common electrical devices found within the campus was compiled to establish baseline wattage values for the logging system. These values serve as reference points when users record their energy consumption.
 
-| Category | Example Devices | Average Wattage |
-|----------|-----------------|-----------------|
-| Computing | Laptops, Desktop PCs | 150W |
-| HVAC | Air Conditioning Units | 1,500W |
-| Lighting | Fluorescent, LED Bulbs | 60W |
-| Projectors | Classroom Projectors | 300W |
-| Printers | Laser Printers, Copiers | 500W |
-| Laboratory | Scientific Equipment | 800W |
-| Kitchen | Refrigerators, Microwaves | 1,000W |
+| Category | Representative Devices | Typical Wattage |
+|----------|------------------------|-----------------|
+| Computing | Laptops, Desktop Computers | 150W |
+| HVAC | Window-type Air Conditioners | 1,500W |
+| Lighting | Fluorescent Tubes, LED Bulbs | 60W |
+| Presentation | LCD Projectors | 300W |
+| Printing | Laser Printers, Photocopiers | 500W |
+| Laboratory | Scientific Instruments | 800W |
+| Pantry | Refrigerators, Microwave Ovens | 1,000W |
 
 ---
 
 ## 3.2 Requirements Specification
 
-### 3.2.1 Project In-Scope and Out-Scope
+### 3.2.1 Project Scope
 
-**In-Scope:**
+The scope definition establishes clear boundaries for the development effort, distinguishing between features targeted for implementation and those reserved for future work.
+
+**Features Within Scope:**
 
 | Feature | Description |
 |---------|-------------|
-| User Authentication | Secure email/password login with email verification |
-| Energy Logging | Manual entry of device usage (device, wattage, duration) |
-| Carbon Calculation | Automatic computation using Philippine grid emission factor |
-| Personal Dashboard | Individual consumption statistics (daily, weekly, monthly) |
-| Admin Analytics | Campus-wide aggregated reports and user activity monitoring |
-| Role-Based Access | Differentiated views for regular users and administrators |
-| Responsive Design | Full functionality on desktop, tablet, and mobile devices |
-| Data Visualization | Interactive charts showing consumption by category and time |
+| User Authentication | Email and password-based login with verification |
+| Energy Logging | Manual entry of device usage including wattage and duration |
+| Carbon Calculation | Automated computation using the Philippine grid emission factor |
+| Personal Dashboard | Individual consumption statistics across daily, weekly, and monthly periods |
+| Administrative Analytics | Campus-wide aggregated reports and activity monitoring |
+| Role-Based Access Control | Differentiated interfaces for regular users and administrators |
+| Responsive Interface | Accessibility across desktop, tablet, and mobile devices |
+| Data Visualization | Charts depicting consumption by category and time period |
 
-**Out-of-Scope:**
+**Features Outside Scope:**
 
-| Feature | Reason |
-|---------|--------|
-| Real-time IoT Integration | Requires hardware sensors beyond project scope |
-| Automated Meter Reading | Would require physical infrastructure modifications |
-| Multi-Campus Support | Initial deployment limited to LPU Manila |
-| Water/Waste Tracking | Focus limited to electricity consumption |
-| Mobile Native App | Web application serves all device types |
-| Billing Integration | Beyond sustainability tracking objectives |
-| Predictive Analytics | Reserved for future AI/ML enhancement |
+| Feature | Rationale for Exclusion |
+|---------|-------------------------|
+| Real-time IoT Integration | Requires hardware sensors beyond project resources |
+| Automated Meter Reading | Necessitates physical infrastructure modifications |
+| Multi-Campus Deployment | Initial implementation limited to a single campus |
+| Water and Waste Tracking | Current focus restricted to electricity consumption |
+| Native Mobile Application | Web-based approach provides adequate device coverage |
+| Billing System Integration | Falls outside sustainability tracking objectives |
+| Predictive Analytics | Identified as potential future enhancement |
 
 ### 3.2.2 System Architecture
 
-Campus Watt Watch follows a **three-tier web application architecture**:
+The system adopts a **three-tier web application architecture**, separating concerns across presentation, application logic, and data management layers.
 
 **Presentation Layer**
-- Technology: React 18, TypeScript, Tailwind CSS
-- Responsibility: User interface rendering, form handling, data visualization
+
+The user interface was built using React 18 with TypeScript for type safety and Tailwind CSS for styling. This layer handles rendering, form interactions, and the display of visualizations.
 
 **Application Layer**
-- Technology: React Context API
-- Responsibility: State management, business logic, API orchestration
+
+Business logic and state management are handled through React's Context API. This layer coordinates data flow between the interface and the database, implementing the calculation formulas for energy and carbon values.
 
 **Data Layer**
-- Technology: Supabase/PostgreSQL
-- Responsibility: Persistent storage, authentication, access control
+
+Persistent storage, user authentication, and access control are managed through a PostgreSQL database. Row-level security policies enforce data isolation between users.
 
 ### 3.2.3 Hardware and Software Requirements
 
-**Hardware Requirements (Development):**
+**Development Environment:**
 
-| Component | Minimum | Recommended |
-|-----------|---------|-------------|
-| Processor | Intel Core i3 / AMD Ryzen 3 | Intel Core i5 / AMD Ryzen 5 |
-| RAM | 4 GB | 8 GB |
-| Storage | 10 GB available | 20 GB SSD |
-| Display | 1366 × 768 | 1920 × 1080 |
-| Internet | 5 Mbps | 25 Mbps |
+| Component | Minimum Specification | Recommended Specification |
+|-----------|----------------------|---------------------------|
+| Processor | Intel Core i3 or equivalent | Intel Core i5 or equivalent |
+| Memory | 4 GB RAM | 8 GB RAM |
+| Storage | 10 GB available space | 20 GB SSD |
+| Display | 1366 × 768 resolution | 1920 × 1080 resolution |
+| Network | 5 Mbps connection | 25 Mbps connection |
 
-**Hardware Requirements (End User):**
+**End-User Environment:**
 
-| Component | Minimum |
-|-----------|---------|
-| Device | Any device with modern web browser |
-| Display | 320px minimum width (mobile responsive) |
-| Internet | 1 Mbps stable connection |
+| Component | Minimum Requirement |
+|-----------|---------------------|
+| Device | Any device with a modern web browser |
+| Display | 320px minimum viewport width |
+| Network | Stable 1 Mbps connection |
 
-**Software Requirements (Development):**
-
-| Software | Version | Purpose |
-|----------|---------|---------|
-| Node.js | 18+ | JavaScript runtime |
-| Bun | Latest | Package manager and bundler |
-| VS Code / Lovable | Latest | Development environment |
-| Git | 2.0+ | Version control |
-| Chrome/Firefox | Latest | Testing and debugging |
-
-**Software Requirements (Production):**
+**Development Software:**
 
 | Software | Version | Purpose |
 |----------|---------|---------|
+| Node.js | 18 or later | JavaScript runtime environment |
+| Bun | Latest stable | Package management and bundling |
+| Visual Studio Code | Latest | Code editing |
+| Git | 2.0 or later | Version control |
+
+**Production Stack:**
+
+| Technology | Version | Role |
+|------------|---------|------|
 | React | 18.3.1 | Frontend framework |
-| TypeScript | 5.0+ | Type-safe JavaScript |
-| Vite | 5.0+ | Build tool |
-| Supabase | Latest | Backend-as-a-Service |
-| Tailwind CSS | 3.4+ | Styling framework |
+| TypeScript | 5.0+ | Static typing |
+| Vite | 5.0+ | Build tooling |
+| PostgreSQL | 15+ | Database management |
+| Tailwind CSS | 3.4+ | Utility-based styling |
 
 ---
 
 ## 3.3 Analysis and Design
 
-### 3.3.1 System Development Life Cycle
+### 3.3.1 Development Methodology
 
-The project follows an **Agile Software Development Life Cycle (SDLC)** with iterative sprints allowing continuous refinement based on feedback.
+The project follows an **Agile Software Development Life Cycle (SDLC)**, structured around iterative sprints that allow for continuous refinement based on stakeholder feedback.
 
-**Phase Details:**
+| Phase | Timeline | Key Activities |
+|-------|----------|----------------|
+| Planning | Weeks 1–2 | Requirements elicitation, user story definition, scope finalization |
+| Design | Weeks 3–4 | Architecture design, database schema modeling, interface wireframing |
+| Development | Weeks 5–10 | Component implementation, backend integration, authentication setup |
+| Testing | Weeks 11–12 | Unit testing, integration testing, user acceptance testing |
+| Review | Ongoing | Stakeholder demonstrations, defect resolution, feature adjustments |
+| Deployment | Week 13 | Production release, user orientation, documentation handover |
 
-| Phase | Duration | Activities |
-|-------|----------|------------|
-| Planning | Week 1-2 | Requirements gathering, user stories, project scope definition |
-| Design | Week 3-4 | System architecture, database schema, UI/UX wireframes |
-| Development | Week 5-10 | Frontend components, backend integration, authentication |
-| Testing | Week 11-12 | Unit tests, integration tests, user acceptance testing |
-| Review | Ongoing | Stakeholder feedback, bug fixes, feature refinement |
-| Deployment | Week 13 | Production release, user training, documentation |
+### 3.3.2 Unified Modeling Language Diagrams
 
-### 3.3.2 UML Diagrams
+The following diagrams document the system's structure and behavior from multiple perspectives.
 
 #### Use Case Diagram
 
+The use case model identifies the primary actors and their interactions with the system.
+
+**Actor Definitions:**
+- **User**: A registered individual who logs personal energy consumption
+- **Administrator**: A user with elevated privileges for campus-wide monitoring
+
 **Use Case Descriptions:**
 
-| Use Case | Actor | Description |
-|----------|-------|-------------|
-| Register Account | User | Create new account with email, password, and name |
-| Login/Logout | User, Admin | Authenticate and manage session |
-| View Personal Dashboard | User | See individual energy and carbon statistics |
-| Log Energy Consumption | User | Record device usage with wattage and duration |
-| View Consumption History | User | Browse past energy log entries |
-| Reset Password | User | Recover account via email verification |
-| View Campus Analytics | Admin | Access aggregated campus-wide statistics |
-| View All User Logs | Admin | Monitor all user consumption records |
-| Manage User Roles | Admin | Assign or revoke administrative privileges |
+| Use Case | Actor(s) | Description |
+|----------|----------|-------------|
+| Register Account | User | Creates a new account with email, password, and display name |
+| Authenticate | User, Admin | Logs into the system and establishes a session |
+| View Dashboard | User | Displays personal energy and carbon statistics |
+| Log Energy Consumption | User | Records device usage with wattage and duration |
+| View History | User | Browses previously submitted energy logs |
+| Reset Password | User | Initiates account recovery via email |
+| Access Campus Analytics | Admin | Views aggregated statistics across all users |
+| Monitor User Activity | Admin | Reviews consumption logs submitted by all users |
+| Manage Roles | Admin | Assigns or revokes administrative privileges |
 
 #### Class Diagram
 
-**User Class:**
-- Attributes: id (string), email (string), name (string), role ('user' | 'admin')
-- Methods: login(), logout(), resetPassword()
+The class diagram represents the core entities and their attributes.
 
-**EnergyLog Class:**
-- Attributes: id (string), userId (string), deviceName (string), category (string), wattage (number), duration (number), carbonEmission (number), timestamp (Date)
-- Methods: calculateEnergy(), calculateCarbon()
+**User Entity**
+- Attributes: id, email, name, role
+- Operations: authenticate(), terminateSession(), initiatePasswordReset()
 
-**DeviceCategory Class:**
-- Attributes: id (string), name (string), icon (string), avgWattage (number)
-- Methods: getDevices()
+**EnergyLog Entity**
+- Attributes: id, userId, deviceName, category, wattage, duration, carbonEmission, timestamp
+- Operations: computeEnergy(), computeCarbon()
 
-**DashboardStats Class:**
-- Attributes: totalEnergyToday (number), totalCarbonToday (number), totalEnergyWeek (number), totalCarbonWeek (number), totalEnergyMonth (number), totalCarbonMonth (number), topDevices (Device[]), categoryBreakdown (array)
-- Methods: getStats()
+**DeviceCategory Entity**
+- Attributes: id, name, icon, defaultWattage
+- Operations: retrieveDevices()
 
-#### Activity Diagram - Energy Logging Process
+**DashboardStatistics Entity**
+- Attributes: dailyEnergy, dailyCarbon, weeklyEnergy, weeklyCarbon, monthlyEnergy, monthlyCarbon, topDevices, categoryDistribution
+- Operations: aggregateStatistics()
 
-1. Start
-2. User logs in
-3. System checks authentication
-   - If not authenticated: Show error, return to login
-   - If authenticated: Continue
-4. User navigates to Log Energy page
-5. User selects device category
-6. User enters device name and wattage
-7. User selects/enters duration
-8. System calculates energy and carbon
-9. User submits log
-10. System saves to database
-11. System updates dashboard statistics
-12. System displays success notification
-13. End
+#### Activity Diagram: Energy Logging Process
 
-#### Sequence Diagram - User Login Flow
+The activity diagram below traces the workflow for recording energy consumption:
 
-1. User enters credentials on LoginPage
-2. LoginPage calls AuthContext.signIn(email, password)
-3. AuthContext calls Supabase.auth.signInWithPassword()
-4. Supabase returns session or error
-5. AuthContext fetches profile from Supabase
-6. Supabase returns profile data
-7. AuthContext checks user_roles in Supabase
-8. Supabase returns role data
-9. AuthContext updates state with user info
-10. LoginPage redirects user to Dashboard
+1. User initiates login
+2. System validates credentials
+3. Upon successful authentication, user navigates to the logging interface
+4. User selects a device category from the dropdown
+5. User enters device name and wattage value
+6. User specifies usage duration
+7. System calculates energy consumption and carbon emission
+8. User confirms and submits the entry
+9. System persists the record to the database
+10. Dashboard statistics are refreshed
+11. System displays confirmation notification
 
-#### Database Design (ERD)
+If authentication fails at step 2, an error message is displayed and the user is returned to the login screen.
 
-**Table: profiles**
+#### Sequence Diagram: Authentication Flow
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| id | UUID | PK, DEFAULT gen_random_uuid() | Unique profile identifier |
-| user_id | UUID | FK → auth.users, NOT NULL | Links to authentication |
-| name | TEXT | NOT NULL | User display name |
-| email | TEXT | NOT NULL | User email address |
-| created_at | TIMESTAMP | DEFAULT now() | Account creation time |
-| updated_at | TIMESTAMP | DEFAULT now() | Last modification time |
+The sequence diagram illustrates the message exchanges during user login:
 
-**Table: user_roles**
+1. User submits credentials through the login form
+2. LoginPage component invokes the signIn method on AuthContext
+3. AuthContext calls the authentication service with email and password
+4. Authentication service returns either a valid session or an error response
+5. If successful, AuthContext queries the profiles table for user details
+6. Database returns the user profile record
+7. AuthContext queries the user_roles table for permission data
+8. Database returns the assigned role
+9. AuthContext updates application state with user information
+10. LoginPage redirects to the Dashboard component
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| id | UUID | PK, DEFAULT gen_random_uuid() | Unique role assignment ID |
-| user_id | UUID | FK → auth.users, NOT NULL | Links to user |
-| role | app_role | DEFAULT 'user' | Role enumeration (admin/user) |
-| created_at | TIMESTAMP | DEFAULT now() | Assignment time |
+#### Database Schema
 
-**Table: energy_logs**
+The relational schema consists of three primary tables linked through user identifiers.
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| id | UUID | PK, DEFAULT gen_random_uuid() | Unique log identifier |
-| user_id | UUID | FK → auth.users, NOT NULL | Log owner |
-| device_name | TEXT | NOT NULL | Name of electrical device |
-| category | TEXT | NOT NULL | Device category |
-| wattage | INTEGER | NOT NULL | Power consumption in watts |
-| duration | INTEGER | NOT NULL | Usage duration in minutes |
-| carbon_emission | NUMERIC | NOT NULL | Calculated kg CO₂ |
-| timestamp | TIMESTAMP | DEFAULT now() | When usage occurred |
-| created_at | TIMESTAMP | DEFAULT now() | Record creation time |
+**profiles**
+
+| Column | Data Type | Constraints | Purpose |
+|--------|-----------|-------------|---------|
+| id | UUID | Primary Key, Auto-generated | Unique record identifier |
+| user_id | UUID | Foreign Key, Not Null | Reference to authentication record |
+| name | TEXT | Not Null | User's display name |
+| email | TEXT | Not Null | User's email address |
+| created_at | TIMESTAMP | Default: current timestamp | Account creation time |
+| updated_at | TIMESTAMP | Default: current timestamp | Last modification time |
+
+**user_roles**
+
+| Column | Data Type | Constraints | Purpose |
+|--------|-----------|-------------|---------|
+| id | UUID | Primary Key, Auto-generated | Unique record identifier |
+| user_id | UUID | Foreign Key, Not Null | Reference to authentication record |
+| role | ENUM | Default: 'user' | Permission level (admin or user) |
+| created_at | TIMESTAMP | Default: current timestamp | Role assignment time |
+
+**energy_logs**
+
+| Column | Data Type | Constraints | Purpose |
+|--------|-----------|-------------|---------|
+| id | UUID | Primary Key, Auto-generated | Unique record identifier |
+| user_id | UUID | Foreign Key, Not Null | Owner of the log entry |
+| device_name | TEXT | Not Null | Name of the electrical device |
+| category | TEXT | Not Null | Device classification |
+| wattage | INTEGER | Not Null | Power rating in watts |
+| duration | INTEGER | Not Null | Usage time in minutes |
+| carbon_emission | NUMERIC | Not Null | Computed CO₂ in kilograms |
+| timestamp | TIMESTAMP | Default: current timestamp | When usage occurred |
+| created_at | TIMESTAMP | Default: current timestamp | Record creation time |
 
 **Relationships:**
-- profiles.user_id → auth.users.id (1:1)
-- user_roles.user_id → auth.users.id (1:1)
-- energy_logs.user_id → auth.users.id (1:N)
+- Each profile corresponds to exactly one authentication record (1:1)
+- Each user_role assignment corresponds to exactly one authentication record (1:1)
+- Each user may have multiple energy_log entries (1:N)
 
-#### System Storyboard
+#### Interface Storyboard
 
-**Screen 1: Landing Page**
-- Header with logo and navigation
-- Hero section with headline "Track Your Campus Energy Footprint"
-- Subtext explaining the system's purpose
-- "Get Started" call-to-action button
-- Feature highlights: Track Usage, Calculate Carbon, View Insights
+The storyboard describes the key screens and their components.
 
-**Screen 2: Login Page**
-- Centered login card with logo
-- Email input field
-- Password input field
-- "Sign In" button
-- Links for "Forgot Password?" and "Create Account"
-- Campus background image
+**Landing Page**
+- Application header with logo and navigation links
+- Hero section presenting the system's value proposition
+- Feature highlights: consumption tracking, carbon calculation, insights dashboard
+- Call-to-action button directing to registration or login
 
-**Screen 3: Dashboard**
-- Sidebar navigation (Dashboard, Log Energy, Admin Panel)
-- Welcome header with user name
-- Tab navigation (Today, This Week, This Month)
-- Four stat cards showing: Energy Consumed, Carbon Emission, Weekly Energy, Trees Needed
-- Top 3 Energy Consuming Devices card with ranked list
-- Energy by Category pie chart with legend
-- Sustainability tip card at bottom
+**Login Screen**
+- Centered card containing the application logo
+- Email and password input fields
+- Sign-in button
+- Links for password recovery and new account registration
+- Campus imagery as background
 
-**Screen 4: Log Energy Page**
-- Form with device category dropdown
-- Device name text input
-- Wattage number input with suggestions
-- Duration selection (preset options + custom)
-- Live preview showing calculated energy and carbon
-- "Log Consumption" submit button
-- Success toast notification on submission
+**User Dashboard**
+- Collapsible sidebar with navigation options
+- Personalized greeting in the header area
+- Tab navigation for time period selection (Today, This Week, This Month)
+- Statistical cards displaying: Energy Consumed, Carbon Emission, Cumulative Values
+- Ranked list of top energy-consuming devices
+- Pie chart showing distribution by device category
+- Sustainability tip displayed at the bottom
+
+**Energy Logging Form**
+- Dropdown for device category selection
+- Text field for device name entry
+- Numeric input for wattage (with suggested values)
+- Duration selector with preset options and custom entry
+- Live preview of calculated energy and carbon values
+- Submission button with loading state
+- Toast notification upon successful logging
 
 ---
 
@@ -285,158 +308,144 @@ The project follows an **Agile Software Development Life Cycle (SDLC)** with ite
 
 ### 3.4.1 Test Plan
 
-**Test Objectives:**
+**Objectives:**
 
-1. Verify all functional requirements are correctly implemented
-2. Ensure security controls prevent unauthorized data access
-3. Validate calculation accuracy for energy and carbon values
-4. Confirm responsive design across device sizes
-5. Assess system performance under expected load
+The testing phase aims to verify that all functional requirements are correctly implemented, security controls prevent unauthorized access, calculations produce accurate results, and the interface performs adequately across different devices.
 
-**Test Scope:**
+**Scope:**
 
-| Test Type | Coverage |
-|-----------|----------|
+| Test Category | Coverage |
+|---------------|----------|
 | Unit Testing | Calculation functions, utility methods |
-| Integration Testing | API calls, database operations, authentication flow |
-| System Testing | End-to-end user journeys |
-| Security Testing | RLS policies, authentication bypass attempts |
-| Usability Testing | User feedback via ISO 25010 questionnaire |
+| Integration Testing | Database operations, authentication workflows |
+| System Testing | End-to-end user scenarios |
+| Security Testing | Row-level security enforcement, access control |
+| Usability Testing | User experience evaluation via questionnaire |
 
-**Test Environment:**
+**Environment:**
 
-- Development: Lovable preview environment
-- Production: Deployed Lovable Cloud instance
-- Browsers: Chrome 120+, Firefox 120+, Safari 17+, Edge 120+
-- Devices: Desktop (1920×1080), Tablet (768×1024), Mobile (375×812)
+Testing was conducted using the following configurations:
 
-### 3.4.2 Test Case Document
+- Browsers: Chrome 120+, Firefox 120+, Safari 17+, Microsoft Edge 120+
+- Viewports: Desktop (1920×1080), Tablet (768×1024), Mobile (375×812)
 
-| TC-ID | Test Case | Steps | Expected Result |
-|-------|-----------|-------|-----------------|
-| TC-001 | User Registration | 1. Navigate to signup 2. Enter valid email/password/name 3. Submit | Account created, verification email sent |
-| TC-002 | User Login | 1. Enter valid credentials 2. Click Sign In | Redirect to dashboard with user data |
-| TC-003 | Invalid Login | 1. Enter wrong password 2. Click Sign In | Error message displayed, no access granted |
-| TC-004 | Energy Log Creation | 1. Select category 2. Enter device/wattage/duration 3. Submit | Log saved, dashboard updated |
-| TC-005 | Energy Calculation | 1. Log 1500W device for 120 minutes | Energy = 3.0 kWh, Carbon = 2.1 kg |
-| TC-006 | Dashboard Statistics | 1. Log multiple entries 2. View dashboard | Correct totals for day/week/month |
-| TC-007 | User Data Isolation | 1. Login as User A 2. Attempt to view User B data | Only User A data visible |
-| TC-008 | Admin Access | 1. Login as admin 2. View admin panel | Campus-wide statistics displayed |
-| TC-009 | Password Reset | 1. Click Forgot Password 2. Enter email 3. Check inbox | Reset email received with valid link |
-| TC-010 | Responsive Layout | 1. Access on mobile device | All features accessible, no horizontal scroll |
-| TC-011 | Session Timeout | 1. Login 2. Wait for session expiry | Automatic logout, redirect to login |
-| TC-012 | Delete Energy Log | 1. View history 2. Delete entry | Log removed, statistics recalculated |
+### 3.4.2 Test Cases
 
-### 3.4.3 Evaluation Plan
+| ID | Test Case | Procedure | Expected Outcome |
+|----|-----------|-----------|------------------|
+| TC-01 | Account Registration | Navigate to signup, enter valid credentials, submit form | Account created; verification email dispatched |
+| TC-02 | Successful Login | Enter valid email and password, submit | Redirect to dashboard; user data displayed |
+| TC-03 | Failed Login Attempt | Enter incorrect password, submit | Error message shown; access denied |
+| TC-04 | Energy Log Submission | Select category, enter device details, submit | Log saved; dashboard statistics updated |
+| TC-05 | Calculation Accuracy | Log 1500W device for 120 minutes | Energy = 3.0 kWh; Carbon = 2.1 kg CO₂ |
+| TC-06 | Dashboard Aggregation | Submit multiple entries, view dashboard | Correct totals for selected time period |
+| TC-07 | Data Isolation | Login as User A, attempt to query User B records | Only User A data accessible |
+| TC-08 | Administrator Access | Login with admin credentials, access admin panel | Campus-wide statistics visible |
+| TC-09 | Password Recovery | Request password reset, check email | Reset link received; link functions correctly |
+| TC-10 | Responsive Layout | Access application on mobile device | All features accessible; no horizontal overflow |
+| TC-11 | Session Expiration | Login, allow session to expire | Automatic logout; redirect to login screen |
+| TC-12 | Log Deletion | View history, delete an entry | Log removed; statistics recalculated |
 
-The system will be evaluated using the **ISO 25010** software quality framework through structured questionnaires administered to pilot users.
+### 3.4.3 Evaluation Framework
 
-**Evaluation Criteria:**
+The system will be evaluated using criteria derived from the **ISO 25010** software product quality model. A structured questionnaire will be administered to pilot users following a testing period.
 
-| Quality Characteristic | Sub-characteristics | Evaluation Method |
-|------------------------|---------------------|-------------------|
-| Functional Suitability | Completeness, Correctness, Appropriateness | Feature verification, calculation validation |
-| Usability | Learnability, Operability, User Interface Aesthetics | 5-point Likert scale questionnaire |
-| Security | Confidentiality, Integrity, Authenticity | Penetration testing, RLS validation |
-| Performance Efficiency | Time Behavior, Resource Utilization | Load time measurements, response timing |
-| Reliability | Availability, Fault Tolerance | Uptime monitoring, error handling tests |
+**Quality Characteristics:**
 
-**Evaluation Respondents:**
+| Characteristic | Sub-characteristics | Evaluation Method |
+|----------------|---------------------|-------------------|
+| Functional Suitability | Completeness, Correctness, Appropriateness | Feature checklist, calculation verification |
+| Usability | Learnability, Operability, Aesthetics | Likert-scale questionnaire |
+| Security | Confidentiality, Integrity, Authenticity | Access control testing |
+| Performance Efficiency | Response Time, Resource Utilization | Timing measurements |
+| Reliability | Availability, Fault Tolerance | Error handling verification |
 
-| Group | Count | Role in Evaluation |
-|-------|-------|-------------------|
-| Campus Facilities | 5 | Assess admin features, campus analytics |
-| Office Representatives | 10 | Evaluate departmental logging workflow |
-| Student Pilot Users | 15 | Test general usability, mobile experience |
+**Participant Distribution:**
 
-**Evaluation Instruments:**
-
-- Functional testing checklist
-- Usability questionnaire (5-point Likert scale)
-- System Usability Scale (SUS) standardized survey
-- Open-ended feedback forms
+| Group | Count | Evaluation Focus |
+|-------|-------|------------------|
+| Facilities Personnel | 5 | Administrative features, reporting accuracy |
+| Office Representatives | 10 | Department-level logging workflow |
+| Student Users | 15 | General usability, mobile experience |
 
 **Scoring Interpretation:**
 
-| Mean Score | Verbal Interpretation |
-|------------|----------------------|
-| 4.50 - 5.00 | Strongly Agree / Excellent |
-| 3.50 - 4.49 | Agree / Very Good |
-| 2.50 - 3.49 | Neutral / Satisfactory |
-| 1.50 - 2.49 | Disagree / Needs Improvement |
-| 1.00 - 1.49 | Strongly Disagree / Poor |
+| Mean Score Range | Interpretation |
+|------------------|----------------|
+| 4.50 – 5.00 | Excellent |
+| 3.50 – 4.49 | Very Good |
+| 2.50 – 3.49 | Satisfactory |
+| 1.50 – 2.49 | Needs Improvement |
+| 1.00 – 1.49 | Poor |
 
 ---
 
-## 3.5 Deployment Plan
+## 3.5 Deployment
 
 ### 3.5.1 Deployment Strategy
 
-Campus Watt Watch follows a **Continuous Deployment** model through the Lovable platform, enabling rapid iteration and immediate availability of updates.
-
-**Deployment Phases:**
+The application follows a **continuous deployment** model, enabling rapid iteration and immediate availability of updates.
 
 | Phase | Timeline | Activities |
 |-------|----------|------------|
-| Development | Weeks 1-10 | Feature implementation in preview environment |
-| Staging | Week 11 | Internal testing, bug fixes, final refinements |
-| Soft Launch | Week 12 | Pilot deployment to test users (30 participants) |
+| Development | Weeks 1–10 | Feature implementation in preview environment |
+| Staging | Week 11 | Internal testing and final adjustments |
+| Pilot Release | Week 12 | Limited deployment to 30 test participants |
 | Production | Week 13 | Full campus deployment with user training |
-| Maintenance | Ongoing | Bug fixes, feature updates, user support |
+| Maintenance | Ongoing | Bug fixes, updates, and user support |
 
-### 3.5.2 Deployment Environment
+### 3.5.2 Infrastructure
 
 | Component | Specification |
 |-----------|---------------|
-| Hosting | Lovable Cloud (managed infrastructure) |
-| Database | Supabase PostgreSQL (auto-scaling) |
-| CDN | Global edge network for static assets |
-| SSL | Automatic HTTPS certificate provisioning |
-| Domain | campus-green-view.lovable.app (custom domain configurable) |
+| Hosting | Cloud-managed infrastructure |
+| Database | PostgreSQL with automatic scaling |
+| Content Delivery | Global edge network for static assets |
+| Security | Automatic HTTPS provisioning |
 
 ### 3.5.3 Rollback Procedure
 
-In case of critical deployment issues:
+In the event of a critical issue following deployment:
 
-1. Access Lovable version history
-2. Identify last stable deployment
-3. Restore previous version
-4. Notify affected users
-5. Investigate root cause before redeploying
-
-### 3.5.4 Post-Deployment Support
-
-| Support Type | Response Time | Channel |
-|--------------|---------------|---------|
-| Critical bugs | 4 hours | Direct developer access |
-| Feature requests | 1-2 weeks | Feedback collection |
-| User training | On-demand | Documentation, video guides |
+1. Access the deployment version history
+2. Identify the last stable release
+3. Restore the previous version
+4. Notify affected users of temporary service interruption
+5. Investigate root cause before redeployment
 
 ---
 
 ## 3.6 Calculation Methodology
 
-Energy consumption and carbon emissions are calculated using scientifically validated formulas adapted for the Philippine electrical grid.
+Energy consumption and carbon emissions are computed using formulas consistent with standard electricity measurement practices.
 
-### Energy Consumption Formula
+### Energy Consumption
 
 ```
-Energy (kWh) = (Wattage × Duration in minutes) / 60,000
+Energy (kWh) = (Wattage × Duration in minutes) ÷ 60,000
 ```
 
-This formula converts watt-minutes to kilowatt-hours, the standard unit for electricity billing and consumption analysis.
+This formula converts watt-minutes to kilowatt-hours, the standard unit for electricity consumption reporting.
 
-### Carbon Emission Formula
+### Carbon Emission
 
 ```
 Carbon Emission (kg CO₂) = Energy (kWh) × 0.7
 ```
 
-The emission factor of **0.7 kg CO₂ per kWh** represents the Philippine grid average, accounting for the nation's energy mix of coal, natural gas, and renewable sources.
+The emission factor of 0.7 kg CO₂ per kWh represents the Philippine grid average, accounting for the national energy mix comprising coal, natural gas, and renewable sources (DOE, 2022).
 
-### Example Calculation
+### Sample Computation
 
-A 1500W air conditioning unit running for 120 minutes:
+For a 1,500-watt air conditioning unit operated for 120 minutes:
 
-- Energy = (1500 × 120) / 60,000 = **3.0 kWh**
-- Carbon = 3.0 × 0.7 = **2.1 kg CO₂**
+- Energy = (1,500 × 120) ÷ 60,000 = **3.0 kWh**
+- Carbon Emission = 3.0 × 0.7 = **2.1 kg CO₂**
+
+---
+
+## References
+
+Department of Energy. (2022). *Philippine Power Statistics*. Retrieved from https://www.doe.gov.ph
+
+Institute for Global Environmental Strategies. (2023). *List of Grid Emission Factors* (Version 11.6). Retrieved from https://www.iges.or.jp

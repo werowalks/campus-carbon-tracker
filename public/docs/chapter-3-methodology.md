@@ -225,6 +225,24 @@ Persistent storage, user authentication, and access control are managed through 
 | PostgreSQL | 15+ | Database management |
 | Tailwind CSS | 3.4+ | Utility-based styling |
 
+**Deployment Environment:**
+
+The production application is deployed using **IONOS Web Hosting**, a commercial hosting platform that provides reliable infrastructure for web applications. IONOS was selected for this project based on the following considerations:
+
+| Criterion | IONOS Capability |
+|-----------|------------------|
+| **Reliability** | 99.9% uptime guarantee with redundant server infrastructure |
+| **SSL Security** | Free SSL certificate included for HTTPS encryption |
+| **Global CDN** | Content delivery network for optimized loading times across geographic regions |
+| **Scalability** | Flexible resource allocation to accommodate varying traffic loads |
+| **Domain Management** | Integrated DNS management and custom domain support |
+
+**Deployment Configuration:**
+
+The application build process generates optimized static assets through Vite's production build pipeline. These assets are then deployed to the IONOS hosting environment, where they are served to end-users. The backend services, including user authentication and database operations, are managed through a separate cloud infrastructure (Lovable Cloud) that communicates with the frontend via secure API endpoints.
+
+This separation of concerns—static frontend hosting via IONOS and dynamic backend services via cloud infrastructure—follows modern web architecture best practices, enabling independent scaling and maintenance of each tier.
+
 ---
 
 ## 3.3 Analysis and Design

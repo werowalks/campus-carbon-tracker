@@ -6,38 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Rate limiting: max 100 requests per IP per 10 minutes
-const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
-const MAX_REQUESTS_PER_WINDOW = 100;
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const record = rateLimitMap.get(ip);
-
-  if (!record || now > record.resetTime) {
-    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
-    return true;
-  }
-
-  if (record.count >= MAX_REQUESTS_PER_WINDOW) {
-    return false;
-  }
-
-  record.count++;
-  return true;
-}
-
-// Clean up old entries periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, record] of rateLimitMap.entries()) {
-    if (now > record.resetTime) {
-      rateLimitMap.delete(ip);
-    }
-  }
-}, 60000); // Clean every minute
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -45,26 +13,10 @@ serve(async (req) => {
   }
 
   try {
-    // Get client IP for rate limiting
-    const clientIP = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
-                     req.headers.get("x-real-ip") || 
-                     "unknown";
-
-    // Check rate limit
-    if (!checkRateLimit(clientIP)) {
-      console.log(`Rate limit exceeded for IP: ${clientIP}`);
-      return new Response(
-        JSON.stringify({ error: "Too many requests. Please try again later." }),
-        {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     if (!resendApiKey) {
-      throw new Error("RESEND_API_KEY is not configured");
+      console.error("RESEND_API_KEY is not configured");
+      throw new Error("Email service is not configured");
     }
 
     const { name, email, message } = await req.json();
@@ -83,6 +35,8 @@ serve(async (req) => {
     const sanitizedName = name.trim().replace(/[<>]/g, '');
     const sanitizedEmail = email.trim();
     const sanitizedMessage = message.trim().replace(/[<>]/g, '');
+
+    console.log(`Processing contact form submission from: ${sanitizedEmail}`);
 
     const resend = new Resend(resendApiKey);
 
@@ -125,12 +79,14 @@ serve(async (req) => {
     });
 
     if (notifyError) {
-      console.error("Failed to send notification email:", notifyError);
+      console.error("Failed to send notification email:", JSON.stringify(notifyError));
       throw new Error("Failed to send message");
     }
 
+    console.log("Notification email sent successfully");
+
     // Send confirmation to user
-    await resend.emails.send({
+    const { error: confirmError } = await resend.emails.send({
       from: "CarbonTrack <onboarding@resend.dev>",
       to: [sanitizedEmail],
       subject: "We received your message - CarbonTrack",
@@ -168,6 +124,13 @@ serve(async (req) => {
         </html>
       `,
     });
+
+    if (confirmError) {
+      console.error("Failed to send confirmation email:", JSON.stringify(confirmError));
+      // Don't throw here - notification was sent successfully
+    } else {
+      console.log("Confirmation email sent successfully");
+    }
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

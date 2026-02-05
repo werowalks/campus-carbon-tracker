@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { EnergyProvider } from "@/contexts/EnergyContext";
+import { useSiteVisitTracker } from "@/hooks/useSiteVisitTracker";
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -17,6 +18,46 @@ import Documentation from "./pages/Documentation";
 
 const queryClient = new QueryClient();
 
+function AppContent() {
+  // Track site visits
+  useSiteVisitTracker();
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <DashboardLayout>
+              <Dashboard />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/log"
+          element={
+            <DashboardLayout>
+              <EnergyLogForm />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <DashboardLayout>
+              <AdminPanel />
+            </DashboardLayout>
+          }
+        />
+        <Route path="/docs" element={<Documentation />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -24,38 +65,7 @@ const App = () => (
         <EnergyProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <DashboardLayout>
-                    <Dashboard />
-                  </DashboardLayout>
-                }
-              />
-              <Route
-                path="/log"
-                element={
-                  <DashboardLayout>
-                    <EnergyLogForm />
-                  </DashboardLayout>
-                }
-              />
-              <Route
-                path="/admin"
-                element={
-                  <DashboardLayout>
-                    <AdminPanel />
-                  </DashboardLayout>
-                }
-              />
-              <Route path="/docs" element={<Documentation />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
+          <AppContent />
         </EnergyProvider>
       </AuthProvider>
     </TooltipProvider>

@@ -9,12 +9,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Leaf, Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { supabase } from '@/integrations/supabase/client';
 import campusBackground from '@/assets/campus-background.jpg';
 
 // Validation schemas
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
+});
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
 });
 
 const registerSchema = z.object({
@@ -28,10 +33,13 @@ export default function LoginPage() {
   const { login, register, isAuthenticated, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
 
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [registerForm, setRegisterForm] = useState({ email: '', password: '', name: '' });
-  const [errors, setErrors] = useState<{ login?: string; register?: string }>({});
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [errors, setErrors] = useState<{ login?: string; register?: string; forgotPassword?: string }>({});
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -96,6 +104,34 @@ export default function LoginPage() {
       setErrors({ register: response.error || 'Registration failed' });
     }
     
+    setIsLoading(false);
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrors({});
+
+    const result = forgotPasswordSchema.safeParse({ email: forgotPasswordEmail });
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors;
+      const errorMessage = Object.values(fieldErrors).flat()[0];
+      setErrors({ forgotPassword: errorMessage });
+      return;
+    }
+
+    setIsLoading(true);
+
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail.trim(), {
+      redirectTo: `${window.location.origin}/login`,
+    });
+
+    if (error) {
+      setErrors({ forgotPassword: error.message });
+    } else {
+      setResetEmailSent(true);
+      toast.success('Password reset email sent! Check your inbox.');
+    }
+
     setIsLoading(false);
   };
 
@@ -201,6 +237,15 @@ export default function LoginPage() {
                       />
                     </div>
                   </div>
+                  <div className="flex items-center justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-sm text-primary hover:underline"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
                   <Button type="submit" className="w-full eco-gradient" disabled={isLoading}>
                     {isLoading ? 'Signing in...' : 'Sign In'}
                   </Button>
@@ -278,6 +323,74 @@ export default function LoginPage() {
           By continuing, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold">Reset Password</h2>
+                <button
+                  onClick={() => {
+                    setShowForgotPassword(false);
+                    setResetEmailSent(false);
+                    setForgotPasswordEmail('');
+                    setErrors({});
+                  }}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  ✕
+                </button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {resetEmailSent ? (
+                <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <div>
+                    <p className="font-medium text-green-800">Email sent!</p>
+                    <p className="text-sm text-green-700">
+                      Check your inbox for a password reset link.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  {errors.forgotPassword && (
+                    <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                      <AlertCircle className="w-4 h-4 text-destructive" />
+                      <p className="text-sm text-destructive">{errors.forgotPassword}</p>
+                    </div>
+                  )}
+                  <p className="text-sm text-muted-foreground">
+                    Enter your email address and we'll send you a link to reset your password.
+                  </p>
+                  <div className="space-y-2">
+                    <Label htmlFor="forgot-email">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="forgot-email"
+                        type="email"
+                        placeholder="you@example.com"
+                        className="pl-10"
+                        value={forgotPasswordEmail}
+                        onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                        required
+                        autoComplete="email"
+                      />
+                    </div>
+                  </div>
+                  <Button type="submit" className="w-full eco-gradient" disabled={isLoading}>
+                    {isLoading ? 'Sending...' : 'Send Reset Link'}
+                  </Button>
+                </form>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

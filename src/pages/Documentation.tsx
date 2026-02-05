@@ -4,6 +4,47 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Copy, Check } from "lucide-react";
 import { toast } from "sonner";
+import MermaidDiagram from "@/components/MermaidDiagram";
+
+const erdDiagram = `erDiagram
+    AUTH_USERS {
+        uuid id PK
+        text email
+        timestamp created_at
+    }
+    
+    PROFILES {
+        uuid id PK
+        uuid user_id FK
+        text name
+        text email
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    USER_ROLES {
+        uuid id PK
+        uuid user_id FK
+        app_role role
+        timestamp created_at
+    }
+    
+    ENERGY_LOGS {
+        uuid id PK
+        uuid user_id FK
+        text device_name
+        text category
+        integer wattage
+        integer duration
+        numeric carbon_emission
+        timestamp timestamp
+        timestamp created_at
+    }
+    
+    AUTH_USERS ||--|| PROFILES : "has profile"
+    AUTH_USERS ||--|| USER_ROLES : "has role"
+    AUTH_USERS ||--o{ ENERGY_LOGS : "logs energy"
+`;
 
 const rawContent = `CHAPTER 3: DESIGN AND DEVELOPMENT METHODOLOGY
 
@@ -226,42 +267,18 @@ ERD Overview:
 
 The database design follows a normalized relational structure centered around the authentication system. The auth.users table, managed by the cloud authentication service, serves as the central reference point for all user-related data. Three public schema tables extend this foundation:
 
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                        CAMPUS WATT WATCH - DATABASE ERD                         │
-└─────────────────────────────────────────────────────────────────────────────────┘
+[See Mermaid ERD Diagram in Formatted Preview Tab]
 
-                              ┌─────────────────────┐
-                              │     auth.users      │
-                              │  (Authentication)   │
-                              ├─────────────────────┤
-                              │ PK  id: UUID        │
-                              │     email: TEXT     │
-                              │     created_at      │
-                              └──────────┬──────────┘
-                                         │
-              ┌──────────────────────────┼──────────────────────────┐
-              │                          │                          │
-              │ 1:1                      │ 1:1                      │ 1:N
-              ▼                          ▼                          ▼
-┌─────────────────────────┐  ┌─────────────────────────┐  ┌─────────────────────────┐
-│        profiles         │  │       user_roles        │  │       energy_logs       │
-├─────────────────────────┤  ├─────────────────────────┤  ├─────────────────────────┤
-│ PK  id: UUID            │  │ PK  id: UUID            │  │ PK  id: UUID            │
-│ FK  user_id: UUID       │  │ FK  user_id: UUID       │  │ FK  user_id: UUID       │
-│     name: TEXT          │  │     role: app_role      │  │     device_name: TEXT   │
-│     email: TEXT         │  │     created_at          │  │     category: TEXT      │
-│     created_at          │  └─────────────────────────┘  │     wattage: INTEGER    │
-│     updated_at          │                               │     duration: INTEGER   │
-└─────────────────────────┘                               │     carbon_emission: NUM│
-                                                          │     timestamp           │
-                                                          │     created_at          │
-                                                          └─────────────────────────┘
+Entities and Relationships:
+• AUTH_USERS (1) ──── (1) PROFILES        [One-to-One: has profile]
+• AUTH_USERS (1) ──── (1) USER_ROLES      [One-to-One: has role]  
+• AUTH_USERS (1) ──── (N) ENERGY_LOGS     [One-to-Many: logs energy]
 
 Legend:
   PK = Primary Key
   FK = Foreign Key
-  1:1 = One-to-One Relationship
-  1:N = One-to-Many Relationship
+  (1) = One side of relationship
+  (N) = Many side of relationship
 
 Entity Descriptions:
 
@@ -569,7 +586,60 @@ const Documentation = () => {
                   making it appropriate for institutional carbon footprint tracking.
                 </p>
 
-                {/* Continue with more sections as needed */}
+                <hr className="my-8 border-border" />
+
+                <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4">
+                  3.3.2 Entity-Relationship Diagram (ERD)
+                </h2>
+                
+                <p className="text-muted-foreground leading-relaxed mb-6">
+                  The Entity-Relationship Diagram provides a visual representation of the database structure, 
+                  illustrating the entities, their attributes, and the relationships that govern data integrity 
+                  within the Campus Watt Watch system.
+                </p>
+
+                <div className="bg-muted/50 rounded-lg p-4 my-6 border border-border">
+                  <MermaidDiagram chart={erdDiagram} className="min-h-[400px]" />
+                </div>
+
+                <h3 className="text-xl font-medium text-foreground mt-6 mb-3">
+                  Entity Descriptions
+                </h3>
+                
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-collapse">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left p-2 font-semibold text-foreground">Entity</th>
+                        <th className="text-left p-2 font-semibold text-foreground">Purpose</th>
+                        <th className="text-left p-2 font-semibold text-foreground">Cardinality</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-muted-foreground">
+                      <tr className="border-b border-border/50">
+                        <td className="p-2 font-medium text-foreground">AUTH_USERS</td>
+                        <td className="p-2">Core authentication table. Contains login credentials.</td>
+                        <td className="p-2">Central reference</td>
+                      </tr>
+                      <tr className="border-b border-border/50">
+                        <td className="p-2 font-medium text-foreground">PROFILES</td>
+                        <td className="p-2">Stores user profile info. Created via trigger on registration.</td>
+                        <td className="p-2">1:1 with AUTH_USERS</td>
+                      </tr>
+                      <tr className="border-b border-border/50">
+                        <td className="p-2 font-medium text-foreground">USER_ROLES</td>
+                        <td className="p-2">Defines permission levels using app_role enum (admin, user).</td>
+                        <td className="p-2">1:1 with AUTH_USERS</td>
+                      </tr>
+                      <tr>
+                        <td className="p-2 font-medium text-foreground">ENERGY_LOGS</td>
+                        <td className="p-2">Records energy consumption entries with device details.</td>
+                        <td className="p-2">1:N with AUTH_USERS</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
                 <p className="text-muted-foreground mt-8 italic">
                   Switch to "Copy Text" tab to copy the full document content.
                 </p>

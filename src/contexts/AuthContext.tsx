@@ -10,6 +10,7 @@ export interface UserProfile {
   email: string;
   name: string;
   role: AppRole;
+  avatar_url: string | null;
 }
 
 interface AuthContextType {
@@ -63,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: profileData.email,
         name: profileData.name,
         role: (roleData?.role as AppRole) || 'user',
+        avatar_url: profileData.avatar_url || null,
       };
 
       return userProfile;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnergy } from '@/contexts/EnergyContext';
@@ -21,9 +21,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Download, Search, Filter, Shield, Trash2, FileSpreadsheet, Calendar } from 'lucide-react';
+import { Download, Search, Filter, Shield, Trash2, FileSpreadsheet, Calendar, Users, Eye, BarChart3, UserCog } from 'lucide-react';
 import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
+
+interface Member {
+  user_id: string;
+  name: string;
+  email: string;
+  avatar_url: string | null;
+  created_at: string;
+  role: 'admin' | 'user';
+}
+
+interface SiteVisitStats {
+  totalVisits: number;
+  todayVisits: number;
+  weekVisits: number;
+  monthVisits: number;
+}
 
 export default function AdminPanel() {
   const { isAdmin } = useAuth();
@@ -32,14 +50,118 @@ export default function AdminPanel() {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
+  const [members, setMembers] = useState<Member[]>([]);
+  const [membersLoading, setMembersLoading] = useState(true);
+  const [visitStats, setVisitStats] = useState<SiteVisitStats>({
+    totalVisits: 0,
+    todayVisits: 0,
+    weekVisits: 0,
+    monthVisits: 0,
+  });
+  const [updatingRole, setUpdatingRole] = useState<string | null>(null);
+
+  const logs = getAllLogs();
+  const stats = getStats();
+
+  // Fetch members and visit stats
+  useEffect(() => {
+    if (isAdmin) {
+      fetchMembers();
+      fetchVisitStats();
+    }
+  }, [isAdmin]);
 
   // Only admins can access this page
   if (!isAdmin) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  const logs = getAllLogs();
-  const stats = getStats();
+  const fetchMembers = async () => {
+    try {
+      setMembersLoading(true);
+      
+      // Fetch profiles with their roles
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, name, email, avatar_url, created_at');
+      
+      if (profilesError) throw profilesError;
+
+      // Fetch roles
+      const { data: roles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+      
+      if (rolesError) throw rolesError;
+
+      // Combine data
+      const membersData: Member[] = (profiles || []).map(profile => {
+        const userRole = roles?.find(r => r.user_id === profile.user_id);
+        return {
+          ...profile,
+          role: (userRole?.role as 'admin' | 'user') || 'user',
+        };
+      });
+
+      setMembers(membersData);
+    } catch (error) {
+      console.error('Error fetching members:', error);
+      toast.error('Failed to load members');
+    } finally {
+      setMembersLoading(false);
+    }
+  };
+
+  const fetchVisitStats = async () => {
+    try {
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+      const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+      // Fetch all visit counts
+      const [totalResult, todayResult, weekResult, monthResult] = await Promise.all([
+        supabase.from('site_visits').select('id', { count: 'exact', head: true }),
+        supabase.from('site_visits').select('id', { count: 'exact', head: true }).gte('visited_at', todayStart),
+        supabase.from('site_visits').select('id', { count: 'exact', head: true }).gte('visited_at', weekStart),
+        supabase.from('site_visits').select('id', { count: 'exact', head: true }).gte('visited_at', monthStart),
+      ]);
+
+      setVisitStats({
+        totalVisits: totalResult.count || 0,
+        todayVisits: todayResult.count || 0,
+        weekVisits: weekResult.count || 0,
+        monthVisits: monthResult.count || 0,
+      });
+    } catch (error) {
+      console.error('Error fetching visit stats:', error);
+    }
+  };
+
+  const handleRoleChange = async (userId: string, newRole: 'admin' | 'user') => {
+    try {
+      setUpdatingRole(userId);
+      
+      const { error } = await supabase
+        .from('user_roles')
+        .update({ role: newRole })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      // Update local state
+      setMembers(prev => prev.map(m => 
+        m.user_id === userId ? { ...m, role: newRole } : m
+      ));
+
+      toast.success(`Role updated to ${newRole}`);
+    } catch (error) {
+      console.error('Error updating role:', error);
+      toast.error('Failed to update role');
+    } finally {
+      setUpdatingRole(null);
+    }
+  };
 
   // Filter logs
   const filteredLogs = logs.filter(log => {
@@ -99,10 +221,8 @@ export default function AdminPanel() {
   };
 
   const exportToExcel = () => {
-    // For Excel, we'll create a more formatted CSV that Excel can read
     const headers = ['Date', 'Time', 'Device Name', 'Category', 'Wattage (W)', 'Duration (min)', 'Energy (kWh)', 'Carbon (kg CO2)'];
     
-    // Add summary at the top
     const summary = [
       ['CAMPUS CARBON FOOTPRINT REPORT'],
       [`Generated: ${format(new Date(), 'MMMM d, yyyy HH:mm')}`],
@@ -163,163 +283,335 @@ export default function AdminPanel() {
         <div>
           <h1 className="text-3xl font-display font-bold">Admin Panel</h1>
           <p className="text-muted-foreground">
-            Manage and export campus energy consumption data
+            Manage users, view analytics, and export data
           </p>
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+      {/* Dashboard Overview Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="border-l-4 border-l-primary">
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold">{logs.length}</div>
-            <p className="text-sm text-muted-foreground">Total Records</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Members</p>
+                <div className="text-3xl font-bold">{members.length}</div>
+              </div>
+              <Users className="w-10 h-10 text-primary/20" />
+            </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-accent">
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold">{stats.totalEnergyMonth.toFixed(1)} kWh</div>
-            <p className="text-sm text-muted-foreground">Monthly Energy</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Site Visits (Today)</p>
+                <div className="text-3xl font-bold">{visitStats.todayVisits}</div>
+              </div>
+              <Eye className="w-10 h-10 text-accent/20" />
+            </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-info">
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold">{stats.totalCarbonMonth.toFixed(2)} kg</div>
-            <p className="text-sm text-muted-foreground">Monthly Carbon</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Site Visits (Month)</p>
+                <div className="text-3xl font-bold">{visitStats.monthVisits}</div>
+              </div>
+              <BarChart3 className="w-10 h-10 text-info/20" />
+            </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-warning">
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold">{new Set(logs.map(l => l.user_id)).size}</div>
-            <p className="text-sm text-muted-foreground">Active Users</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Energy Logs</p>
+                <div className="text-3xl font-bold">{logs.length}</div>
+              </div>
+              <FileSpreadsheet className="w-10 h-10 text-warning/20" />
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters and Export */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <CardTitle>Energy Logs</CardTitle>
-              <CardDescription>
-                View, filter, and export all energy consumption data
-              </CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={exportToCSV}>
-                <Download className="w-4 h-4 mr-2" />
-                Export CSV
-              </Button>
-              <Button onClick={exportToExcel} className="eco-gradient">
-                <FileSpreadsheet className="w-4 h-4 mr-2" />
-                Export Excel
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by device name..."
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-full sm:w-48 bg-popover">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover z-50">
-                <SelectItem value="all">All Categories</SelectItem>
-                {DEVICE_CATEGORIES.map(cat => (
-                  <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-full sm:w-40 bg-popover">
-                <Calendar className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Date" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover z-50">
-                <SelectItem value="all">All Time</SelectItem>
-                <SelectItem value="today">Today</SelectItem>
-                <SelectItem value="week">This Week</SelectItem>
-                <SelectItem value="month">This Month</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      {/* Tabs for different sections */}
+      <Tabs defaultValue="members" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-flex">
+          <TabsTrigger value="members" className="gap-2">
+            <Users className="w-4 h-4" />
+            Members
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Analytics
+          </TabsTrigger>
+          <TabsTrigger value="logs" className="gap-2">
+            <FileSpreadsheet className="w-4 h-4" />
+            Energy Logs
+          </TabsTrigger>
+        </TabsList>
 
-          {/* Data Table */}
-          <div className="rounded-md border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date & Time</TableHead>
-                  <TableHead>Device</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead className="text-right">Wattage</TableHead>
-                  <TableHead className="text-right">Duration</TableHead>
-                  <TableHead className="text-right">Energy</TableHead>
-                  <TableHead className="text-right">Carbon</TableHead>
-                  <TableHead className="w-12"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLogs.length > 0 ? (
-                  filteredLogs.slice(0, 50).map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell className="text-sm">
-                        {format(new Date(log.timestamp), 'MMM d, yyyy HH:mm')}
-                      </TableCell>
-                      <TableCell className="font-medium">{log.device_name}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {DEVICE_CATEGORIES.find(c => c.id === log.category)?.name || log.category}
-                      </TableCell>
-                      <TableCell className="text-right">{log.wattage}W</TableCell>
-                      <TableCell className="text-right">{log.duration}min</TableCell>
-                      <TableCell className="text-right">
-                        {calculateEnergyKWh(log.wattage, log.duration).toFixed(3)} kWh
-                      </TableCell>
-                      <TableCell className="text-right font-medium text-primary">
-                        {log.carbon_emission.toFixed(4)} kg
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          onClick={() => handleDelete(log.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
+        {/* Members Tab */}
+        <TabsContent value="members">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <UserCog className="w-5 h-5 text-primary" />
+                <div>
+                  <CardTitle>Member Management</CardTitle>
+                  <CardDescription>View all members and manage their roles</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {membersLoading ? (
+                <div className="text-center py-8 text-muted-foreground">Loading members...</div>
+              ) : (
+                <div className="rounded-md border overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Joined</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead className="w-32">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {members.map((member) => (
+                        <TableRow key={member.user_id}>
+                          <TableCell className="font-medium">{member.name}</TableCell>
+                          <TableCell className="text-muted-foreground">{member.email}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {format(new Date(member.created_at), 'MMM d, yyyy')}
+                          </TableCell>
+                          <TableCell>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              member.role === 'admin' 
+                                ? 'bg-primary/10 text-primary' 
+                                : 'bg-muted text-muted-foreground'
+                            }`}>
+                              {member.role === 'admin' ? '👑 Admin' : '👤 User'}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={member.role}
+                              onValueChange={(value: 'admin' | 'user') => handleRoleChange(member.user_id, value)}
+                              disabled={updatingRole === member.user_id}
+                            >
+                              <SelectTrigger className="w-28 h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="user">User</SelectItem>
+                                <SelectItem value="admin">Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Analytics Tab */}
+        <TabsContent value="analytics">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Eye className="w-5 h-5 text-primary" />
+                  Site Visit Statistics
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                    <span className="text-muted-foreground">Today</span>
+                    <span className="text-xl font-bold">{visitStats.todayVisits}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                    <span className="text-muted-foreground">This Week</span>
+                    <span className="text-xl font-bold">{visitStats.weekVisits}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                    <span className="text-muted-foreground">This Month</span>
+                    <span className="text-xl font-bold">{visitStats.monthVisits}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg">
+                    <span className="font-medium">All Time</span>
+                    <span className="text-2xl font-bold text-primary">{visitStats.totalVisits}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-primary" />
+                  Population Overview
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                    <span className="text-muted-foreground">Total Users</span>
+                    <span className="text-xl font-bold">{members.filter(m => m.role === 'user').length}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                    <span className="text-muted-foreground">Administrators</span>
+                    <span className="text-xl font-bold">{members.filter(m => m.role === 'admin').length}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                    <span className="text-muted-foreground">Active Contributors</span>
+                    <span className="text-xl font-bold">{new Set(logs.map(l => l.user_id)).size}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg">
+                    <span className="font-medium">Total Members</span>
+                    <span className="text-2xl font-bold text-primary">{members.length}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Energy Logs Tab */}
+        <TabsContent value="logs">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Energy Logs</CardTitle>
+                  <CardDescription>
+                    View, filter, and export all energy consumption data
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={exportToCSV}>
+                    <Download className="w-4 h-4 mr-2" />
+                    Export CSV
+                  </Button>
+                  <Button onClick={exportToExcel} className="eco-gradient">
+                    <FileSpreadsheet className="w-4 h-4 mr-2" />
+                    Export Excel
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {/* Filters */}
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by device name..."
+                    className="pl-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="w-full sm:w-48 bg-popover">
+                    <Filter className="w-4 h-4 mr-2" />
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {DEVICE_CATEGORIES.map(cat => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={dateFilter} onValueChange={setDateFilter}>
+                  <SelectTrigger className="w-full sm:w-40 bg-popover">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    <SelectValue placeholder="Date" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    <SelectItem value="all">All Time</SelectItem>
+                    <SelectItem value="today">Today</SelectItem>
+                    <SelectItem value="week">This Week</SelectItem>
+                    <SelectItem value="month">This Month</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Data Table */}
+              <div className="rounded-md border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date & Time</TableHead>
+                      <TableHead>Device</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead className="text-right">Wattage</TableHead>
+                      <TableHead className="text-right">Duration</TableHead>
+                      <TableHead className="text-right">Energy</TableHead>
+                      <TableHead className="text-right">Carbon</TableHead>
+                      <TableHead className="w-12"></TableHead>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                      No records found matching your filters
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredLogs.length > 0 ? (
+                      filteredLogs.slice(0, 50).map((log) => (
+                        <TableRow key={log.id}>
+                          <TableCell className="text-sm">
+                            {format(new Date(log.timestamp), 'MMM d, yyyy HH:mm')}
+                          </TableCell>
+                          <TableCell className="font-medium">{log.device_name}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {DEVICE_CATEGORIES.find(c => c.id === log.category)?.name || log.category}
+                          </TableCell>
+                          <TableCell className="text-right">{log.wattage}W</TableCell>
+                          <TableCell className="text-right">{log.duration}min</TableCell>
+                          <TableCell className="text-right">
+                            {calculateEnergyKWh(log.wattage, log.duration).toFixed(3)} kWh
+                          </TableCell>
+                          <TableCell className="text-right font-medium text-primary">
+                            {log.carbon_emission.toFixed(4)} kg
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={() => handleDelete(log.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                          No records found matching your filters
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
 
-          {filteredLogs.length > 50 && (
-            <p className="text-sm text-muted-foreground mt-4 text-center">
-              Showing 50 of {filteredLogs.length} records. Export to see all data.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+              {filteredLogs.length > 50 && (
+                <p className="text-sm text-muted-foreground mt-4 text-center">
+                  Showing 50 of {filteredLogs.length} records. Export to see all data.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

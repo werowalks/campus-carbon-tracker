@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Leaf, Zap, BarChart3, Download, ArrowRight, Building2 } from 'lucide-react';
+import { Leaf, Zap, BarChart3, Download, ArrowRight, Building2, MessageCircle } from 'lucide-react';
 
 export default function Index() {
   return (
@@ -94,8 +94,17 @@ export default function Index() {
 
       {/* Footer */}
       <footer className="border-t bg-card/50">
-        <div className="container py-8 text-center text-sm text-muted-foreground">
-          <p>© 2025 Sustainable Campus Initiative. Built for a greener future.</p>
+        <div className="container py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-muted-foreground">
+            © 2025 Sustainable Campus Initiative. Built for a greener future.
+          </p>
+          <a 
+            href="mailto:campuswattwatch@gmail.com"
+            className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+          >
+            <MessageCircle className="w-4 h-4" />
+            Chat Support
+          </a>
         </div>
       </footer>
     </div>

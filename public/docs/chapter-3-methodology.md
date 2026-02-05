@@ -339,56 +339,13 @@ The sequence diagram illustrates the message exchanges during user login:
 9. AuthContext updates application state with user information
 10. LoginPage redirects to the Dashboard component
 
-#### Database Schema
-
-The relational schema consists of three primary tables linked through user identifiers.
-
-**profiles**
-
-| Column | Data Type | Constraints | Purpose |
-|--------|-----------|-------------|---------|
-| id | UUID | Primary Key, Auto-generated | Unique record identifier |
-| user_id | UUID | Foreign Key, Not Null | Reference to authentication record |
-| name | TEXT | Not Null | User's display name |
-| email | TEXT | Not Null | User's email address |
-| created_at | TIMESTAMP | Default: current timestamp | Account creation time |
-| updated_at | TIMESTAMP | Default: current timestamp | Last modification time |
-
-**user_roles**
-
-| Column | Data Type | Constraints | Purpose |
-|--------|-----------|-------------|---------|
-| id | UUID | Primary Key, Auto-generated | Unique record identifier |
-| user_id | UUID | Foreign Key, Not Null | Reference to authentication record |
-| role | ENUM | Default: 'user' | Permission level (admin or user) |
-| created_at | TIMESTAMP | Default: current timestamp | Role assignment time |
-
-**energy_logs**
-
-| Column | Data Type | Constraints | Purpose |
-|--------|-----------|-------------|---------|
-| id | UUID | Primary Key, Auto-generated | Unique record identifier |
-| user_id | UUID | Foreign Key, Not Null | Owner of the log entry |
-| device_name | TEXT | Not Null | Name of the electrical device |
-| category | TEXT | Not Null | Device classification |
-| wattage | INTEGER | Not Null | Power rating in watts |
-| duration | INTEGER | Not Null | Usage time in minutes |
-| carbon_emission | NUMERIC | Not Null | Computed CO₂ in kilograms |
-| timestamp | TIMESTAMP | Default: current timestamp | When usage occurred |
-| created_at | TIMESTAMP | Default: current timestamp | Record creation time |
-
-**Relationships:**
-- Each profile corresponds to exactly one authentication record (1:1)
-- Each user_role assignment corresponds to exactly one authentication record (1:1)
-- Each user may have multiple energy_log entries (1:N)
-
 #### Entity-Relationship Diagram (ERD)
 
-The following Entity-Relationship Diagram provides a visual representation of the database schema, illustrating the entities, their attributes, and the relationships that govern data integrity within the Campus Watt Watch system.
+The Entity-Relationship Diagram provides a visual representation of the database structure, illustrating the entities, their attributes, and the relationships that govern data integrity within the Campus Watt Watch system.
 
 **ERD Overview:**
 
-The database design follows a normalized relational structure centered around the authentication system. The `auth.users` table, managed by the authentication service, serves as the central reference point for all user-related data. Three public schema tables extend this foundation:
+The database design follows a normalized relational structure centered around the authentication system. The `auth.users` table, managed by the cloud authentication service, serves as the central reference point for all user-related data. Three public schema tables extend this foundation:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -397,7 +354,7 @@ The database design follows a normalized relational structure centered around th
 
                               ┌─────────────────────┐
                               │     auth.users      │
-                              │    (Supabase Auth)  │
+                              │  (Authentication)   │
                               ├─────────────────────┤
                               │ PK  id: UUID        │
                               │     email: TEXT     │
@@ -414,37 +371,70 @@ The database design follows a normalized relational structure centered around th
 │ PK  id: UUID            │  │ PK  id: UUID            │  │ PK  id: UUID            │
 │ FK  user_id: UUID       │  │ FK  user_id: UUID       │  │ FK  user_id: UUID       │
 │     name: TEXT          │  │     role: app_role      │  │     device_name: TEXT   │
-│     email: TEXT         │  │     created_at: TIMESTAMP│ │     category: TEXT      │
-│     created_at: TIMESTAMP│ └─────────────────────────┘  │     wattage: INTEGER    │
-│     updated_at: TIMESTAMP│                              │     duration: INTEGER   │
+│     email: TEXT         │  │     created_at          │  │     category: TEXT      │
+│     created_at          │  └─────────────────────────┘  │     wattage: INTEGER    │
+│     updated_at          │                               │     duration: INTEGER   │
 └─────────────────────────┘                               │     carbon_emission: NUM│
-                                                          │     timestamp: TIMESTAMP│
-                                                          │     created_at: TIMESTAMP│
+                                                          │     timestamp           │
+                                                          │     created_at          │
                                                           └─────────────────────────┘
+
+Legend:
+  PK = Primary Key
+  FK = Foreign Key
+  1:1 = One-to-One Relationship
+  1:N = One-to-Many Relationship
 ```
 
 **Entity Descriptions:**
 
 | Entity | Purpose | Cardinality |
 |--------|---------|-------------|
-| **auth.users** | Core authentication table managed by the authentication service. Contains login credentials and session management data. | Central reference entity |
+| **auth.users** | Core authentication table managed by the cloud authentication service. Contains login credentials and session management data. | Central reference entity |
 | **profiles** | Stores user profile information including display name and email. Created automatically via database trigger upon user registration. | 1:1 with auth.users |
 | **user_roles** | Defines user permission levels using the `app_role` enumeration (admin, user). Default role assigned via database trigger. | 1:1 with auth.users |
-| **energy_logs** | Records individual energy consumption entries with device details, calculated emissions, and timestamps. | 1:N with auth.users |
+| **energy_logs** | Records individual energy consumption entries with device details, calculated carbon emissions, and usage timestamps. | 1:N with auth.users |
+
+**Attribute Specifications:**
+
+*profiles Entity:*
+- `id` (UUID): Primary key, auto-generated unique identifier
+- `user_id` (UUID): Foreign key referencing auth.users
+- `name` (TEXT): User's display name
+- `email` (TEXT): User's email address
+- `created_at` (TIMESTAMP): Account creation timestamp
+- `updated_at` (TIMESTAMP): Last modification timestamp
+
+*user_roles Entity:*
+- `id` (UUID): Primary key, auto-generated unique identifier
+- `user_id` (UUID): Foreign key referencing auth.users
+- `role` (ENUM): Permission level using app_role type (admin | user)
+- `created_at` (TIMESTAMP): Role assignment timestamp
+
+*energy_logs Entity:*
+- `id` (UUID): Primary key, auto-generated unique identifier
+- `user_id` (UUID): Foreign key referencing auth.users
+- `device_name` (TEXT): Name of the electrical device
+- `category` (TEXT): Device classification (e.g., computer, hvac, lighting)
+- `wattage` (INTEGER): Power rating in watts
+- `duration` (INTEGER): Usage time in minutes
+- `carbon_emission` (NUMERIC): Computed CO₂ emission in kilograms
+- `timestamp` (TIMESTAMP): When the usage occurred
+- `created_at` (TIMESTAMP): Record creation timestamp
 
 **Key Design Decisions:**
 
 1. **Separation of Authentication and Profile Data**: The profiles table exists in the public schema to allow application-level queries, while sensitive authentication data remains protected in the auth schema.
 
-2. **Role-Based Access Control**: The user_roles table enables flexible permission management through the `app_role` enumeration, supporting future role expansions.
+2. **Role-Based Access Control (RBAC)**: The user_roles table enables flexible permission management through the `app_role` enumeration, supporting future role expansions beyond the current admin/user dichotomy.
 
 3. **Denormalized Email Storage**: Email is stored in both auth.users and profiles to enable efficient querying without cross-schema joins.
 
-4. **Automatic Record Creation**: Database triggers automatically create corresponding records in profiles and user_roles when a new user registers, ensuring data consistency.
+4. **Automatic Record Creation**: Database triggers (`handle_new_user`) automatically create corresponding records in profiles and user_roles when a new user registers, ensuring referential integrity.
 
-**Referential Integrity:**
+**Referential Integrity and Security:**
 
-All foreign key relationships reference the `user_id` column, which corresponds to the `id` in `auth.users`. Row-Level Security (RLS) policies enforce that:
+All foreign key relationships reference the `user_id` column, which corresponds to the `id` in `auth.users`. Row-Level Security (RLS) policies enforce data isolation:
 - Users can only access their own profile and role data
 - Users can only create, read, and delete their own energy logs
 - Administrators can view all profiles and energy logs across the system

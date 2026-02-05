@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <!--[if mso]>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <![endif]-->
+  <style>
+    :root {
+      color-scheme: light dark;
+      supported-color-schemes: light dark;
+    }
+    @media (prefers-color-scheme: dark) {
+      .email-body {
+        background-color: #1a1a1a !important;
+      }
+      .email-container {
+        background-color: #2d2d2d !important;
+      }
+      .email-text {
+        color: #e5e5e5 !important;
+      }
+      .email-text-muted {
+        color: #a3a3a3 !important;
+      }
+      .email-footer {
+        background-color: #252525 !important;
+      }
+    }
+  </style>
+</head>
+<body class="email-body" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;">
+  <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <div style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); padding: 30px; text-align: center;">
+      <h1 style="color: #ffffff; margin: 0; font-size: 24px;">🌱 CarbonTrack</h1>
+    </div>
+    <div style="padding: 40px 30px;">
+      <h2 class="email-text" style="color: #333333; margin-top: 0;">Your Login Link</h2>
+      <p class="email-text" style="color: #666666; line-height: 1.6;">
+        Click the button below to log in to your CarbonTrack account:
+      </p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="{{ .ConfirmationURL }}" 
+           style="display: inline-block; background-color: #16a34a; color: #ffffff !important; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 16px; border: 2px solid #16a34a;">
+          Log In to CarbonTrack
+        </a>
+      </div>
+      <p class="email-text-muted" style="color: #666666; line-height: 1.6; font-size: 14px;">
+        If the button doesn't work, copy and paste this link into your browser:
+      </p>
+      <p style="color: #22c55e; word-break: break-all; font-size: 14px;">
+        {{ .ConfirmationURL }}
+      </p>
+      <hr style="border: none; border-top: 1px solid #eeeeee; margin: 30px 0;">
+      <p class="email-text-muted" style="color: #999999; font-size: 13px; line-height: 1.5;">
+        If you didn't request this login link, you can safely ignore this email.
+      </p>
+    </div>
+    <div class="email-footer" style="background-color: #f9f9f9; padding: 20px 30px; text-align: center;">
+      <p class="email-text-muted" style="color: #999999; font-size: 12px; margin: 0;">
+        CarbonTrack - Sustainable Campus Initiative
+      </p>
+    </div>
+  </div>
+</body>
+</html>

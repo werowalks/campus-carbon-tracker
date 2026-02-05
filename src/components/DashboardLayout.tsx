@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Leaf, 
   LayoutDashboard, 
@@ -13,7 +14,8 @@ import {
   Shield,
   KeyRound,
   Pencil,
-  X
+  Camera,
+  Loader2
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -43,10 +45,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   
   const [showChangeNameDialog, setShowChangeNameDialog] = useState(false);
   const [showResetPasswordDialog, setShowResetPasswordDialog] = useState(false);
+  const [showChangePhotoDialog, setShowChangePhotoDialog] = useState(false);
   const [newName, setNewName] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleChangeName = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,6 +107,62 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image must be less than 2MB');
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}/avatar.${fileExt}`;
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Update profile with avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      toast.success('Profile photo updated!');
+      setShowChangePhotoDialog(false);
+      window.location.reload();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to upload photo');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const getInitials = (name: string | undefined) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   if (isLoading) {
@@ -167,9 +228,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="w-4 h-4 text-primary" />
-                </div>
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.name || 'User'} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                    {getInitials(profile?.name)}
+                  </AvatarFallback>
+                </Avatar>
                 <span className="hidden sm:block text-sm font-medium">
                   {profile?.name || user?.email}
                 </span>
@@ -191,6 +255,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   Administrator
                 </DropdownMenuItem>
               )}
+              <DropdownMenuItem onClick={() => setShowChangePhotoDialog(true)}>
+                <Camera className="w-4 h-4 mr-2" />
+                Change Photo
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => {
                 setNewName(profile?.name || '');
                 setShowChangeNameDialog(true);
@@ -294,6 +362,50 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Photo Dialog */}
+      <Dialog open={showChangePhotoDialog} onOpenChange={setShowChangePhotoDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Change Profile Photo</DialogTitle>
+            <DialogDescription>
+              Upload a new profile picture (max 2MB)
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-6 py-4">
+            <Avatar className="w-24 h-24">
+              <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.name || 'User'} />
+              <AvatarFallback className="bg-primary/10 text-primary text-2xl">
+                {getInitials(profile?.name)}
+              </AvatarFallback>
+            </Avatar>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoUpload}
+              className="hidden"
+            />
+            <Button 
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingPhoto}
+              className="w-full"
+            >
+              {isUploadingPhoto ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Camera className="w-4 h-4 mr-2" />
+                  Select Photo
+                </>
+              )}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

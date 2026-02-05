@@ -382,6 +382,73 @@ The relational schema consists of three primary tables linked through user ident
 - Each user_role assignment corresponds to exactly one authentication record (1:1)
 - Each user may have multiple energy_log entries (1:N)
 
+#### Entity-Relationship Diagram (ERD)
+
+The following Entity-Relationship Diagram provides a visual representation of the database schema, illustrating the entities, their attributes, and the relationships that govern data integrity within the Campus Watt Watch system.
+
+**ERD Overview:**
+
+The database design follows a normalized relational structure centered around the authentication system. The `auth.users` table, managed by the authentication service, serves as the central reference point for all user-related data. Three public schema tables extend this foundation:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                        CAMPUS WATT WATCH - DATABASE ERD                         │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+                              ┌─────────────────────┐
+                              │     auth.users      │
+                              │    (Supabase Auth)  │
+                              ├─────────────────────┤
+                              │ PK  id: UUID        │
+                              │     email: TEXT     │
+                              │     created_at      │
+                              └──────────┬──────────┘
+                                         │
+              ┌──────────────────────────┼──────────────────────────┐
+              │                          │                          │
+              │ 1:1                      │ 1:1                      │ 1:N
+              ▼                          ▼                          ▼
+┌─────────────────────────┐  ┌─────────────────────────┐  ┌─────────────────────────┐
+│        profiles         │  │       user_roles        │  │       energy_logs       │
+├─────────────────────────┤  ├─────────────────────────┤  ├─────────────────────────┤
+│ PK  id: UUID            │  │ PK  id: UUID            │  │ PK  id: UUID            │
+│ FK  user_id: UUID       │  │ FK  user_id: UUID       │  │ FK  user_id: UUID       │
+│     name: TEXT          │  │     role: app_role      │  │     device_name: TEXT   │
+│     email: TEXT         │  │     created_at: TIMESTAMP│ │     category: TEXT      │
+│     created_at: TIMESTAMP│ └─────────────────────────┘  │     wattage: INTEGER    │
+│     updated_at: TIMESTAMP│                              │     duration: INTEGER   │
+└─────────────────────────┘                               │     carbon_emission: NUM│
+                                                          │     timestamp: TIMESTAMP│
+                                                          │     created_at: TIMESTAMP│
+                                                          └─────────────────────────┘
+```
+
+**Entity Descriptions:**
+
+| Entity | Purpose | Cardinality |
+|--------|---------|-------------|
+| **auth.users** | Core authentication table managed by the authentication service. Contains login credentials and session management data. | Central reference entity |
+| **profiles** | Stores user profile information including display name and email. Created automatically via database trigger upon user registration. | 1:1 with auth.users |
+| **user_roles** | Defines user permission levels using the `app_role` enumeration (admin, user). Default role assigned via database trigger. | 1:1 with auth.users |
+| **energy_logs** | Records individual energy consumption entries with device details, calculated emissions, and timestamps. | 1:N with auth.users |
+
+**Key Design Decisions:**
+
+1. **Separation of Authentication and Profile Data**: The profiles table exists in the public schema to allow application-level queries, while sensitive authentication data remains protected in the auth schema.
+
+2. **Role-Based Access Control**: The user_roles table enables flexible permission management through the `app_role` enumeration, supporting future role expansions.
+
+3. **Denormalized Email Storage**: Email is stored in both auth.users and profiles to enable efficient querying without cross-schema joins.
+
+4. **Automatic Record Creation**: Database triggers automatically create corresponding records in profiles and user_roles when a new user registers, ensuring data consistency.
+
+**Referential Integrity:**
+
+All foreign key relationships reference the `user_id` column, which corresponds to the `id` in `auth.users`. Row-Level Security (RLS) policies enforce that:
+- Users can only access their own profile and role data
+- Users can only create, read, and delete their own energy logs
+- Administrators can view all profiles and energy logs across the system
+
 #### Interface Storyboard
 
 The storyboard describes the key screens and their components.

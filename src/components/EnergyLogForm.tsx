@@ -60,6 +60,14 @@ export default function EnergyLogForm() {
           updated.deviceName = '';
         }
         
+        // Auto-fill wattage when device is selected
+        if (field === 'deviceName') {
+          const selectedDevice = getDevicesByCategory(d.category).find(dev => dev.name === value);
+          if (selectedDevice) {
+            updated.wattage = selectedDevice.wattage.toString();
+          }
+        }
+        
         return updated;
       }
       return d;

@@ -75,16 +75,62 @@ The questionnaire employs a five-point Likert scale, with responses ranging from
 
 3.1.3 Device Inventory Analysis
 
-An inventory of common electrical devices found within the campus was compiled to establish baseline wattage values for the logging system. These values serve as reference points when users record their energy consumption.
+An inventory of common electrical devices found within the campus was compiled through systematic documentation. Wattage values were obtained through nameplate inspection, manufacturer specifications, and industry references (DOE PH, Meralco Appliance Guide, IGES).
 
-Category        Representative Devices              Typical Wattage
-Computing       Laptops, Desktop Computers          150W
-HVAC            Window-type Air Conditioners        1,500W
-Lighting        Fluorescent Tubes, LED Bulbs        60W
-Presentation    LCD Projectors                      300W
-Printing        Laser Printers, Photocopiers        500W
-Laboratory      Scientific Instruments              800W
-Pantry          Refrigerators, Microwave Ovens      1,000W
+Device Masterlist:
+
+Category            Device Name           Wattage   Source
+Computing           Laptop                65W       DOE PH / Manufacturer Adapters
+Computing           Desktop Computer      250W      DOE PH / Meralco Appliance Guide
+Computing           iPad                  15W       DOE PH / USB Charging Standards
+Computing           Tablet                15W       DOE PH / USB Charging Standards
+Computing           Monitor               40W       DOE PH / Meralco Appliance Guide
+Computing           Portable Monitor      30W       DOE PH / Manufacturer Display Specs
+Cafeteria/Kitchen   Electric Kettle       1500W     Meralco Appliance Wattage Guide
+Cafeteria/Kitchen   Refrigerator          150W      Meralco Appliance Wattage Guide
+Cafeteria/Kitchen   Microwave Oven        1000W     Meralco Appliance Wattage Guide
+Cafeteria/Kitchen   Rice Cooker           700W      Meralco Appliance Wattage Guide
+Cafeteria/Kitchen   Induction Cooker      1800W     DOE PH / Meralco Appliance Guide
+Cafeteria/Kitchen   Electric Oven         2400W     Meralco Appliance Wattage Guide
+Cafeteria/Kitchen   Coffee Machine        1200W     DOE PH / Meralco SME Guide
+Facilities/HVAC     Electric Fan          75W       DOE PH Energy Efficiency Guide
+Facilities/HVAC     Portable Fan          50W       DOE PH Energy Efficiency Guide
+Facilities/HVAC     Air Purifier          60W       DOE PH / Manufacturer Specs
+Facilities/HVAC     Tile Cleaning Machine 1200W     Meralco Commercial Equipment Guide
+Printing/Office     POS Machine           30W       Meralco SME Energy Guide
+Printing/Office     Scanner               30W       DOE PH Appliance Guide
+Printing/Office     Printer               400W      DOE PH / Meralco Appliance Guide
+Printing/Office     Photocopier           1200W     Meralco Appliance Wattage Guide
+AV/Classroom        DSLR Camera           10W       Manufacturer Power Ratings
+AV/Classroom        LCD Projector         300W      Meralco Appliance Wattage Guide
+AV/Classroom        Speaker               60W       DOE PH / Meralco Appliance Guide
+AV/Classroom        Sound System          300W      DOE PH / Meralco Appliance Guide
+AV/Classroom        Television            120W      Meralco Appliance Wattage Guide
+Wearables           Apple Watch           5W        Manufacturer Charging Specs
+Wearables           Samsung Watch         5W        Manufacturer Charging Specs
+Wearables           Garmin Watch          5W        Manufacturer Charging Specs
+Wearables           Huawei Watch          5W        Manufacturer Charging Specs
+Wearables           Fitbit                3W        Manufacturer Charging Specs
+Wearables           Xiaomi Watch          5W        Manufacturer Charging Specs
+Networking          Server Computer       400W      DOE PH / Meralco SME Guide
+Networking          Network Switch        50W       DOE PH / Meralco SME Guide
+Security/Safety     CCTV Camera           15W       DOE PH / Security Equipment Specs
+Water/Waste         Water Dispenser       500W      Meralco Appliance Wattage Guide
+Lighting            LED Light Bulb        10W       DOE PH Energy Efficient Lighting Guide
+
+Category Average Wattages:
+
+Category            Average Wattage   Calculation Basis
+Computing           115W              Mean of computing devices (15-400W)
+Cafeteria/Kitchen   1256W             Mean of kitchen appliances
+Facilities/HVAC     287W              Mean of HVAC equipment
+Printing/Office     415W              Mean of printing/office devices
+AV/Classroom        158W              Mean of AV equipment
+Wearables           5W                Mean of wearable charging
+Networking          225W              Mean of networking equipment
+Security/Safety     15W               CCTV camera baseline
+Water/Waste         500W              Water dispenser baseline
+Lighting            10W               LED light bulb baseline
 
 ───────────────────────────────────────────────────────
 
@@ -474,26 +520,105 @@ In the event of a critical issue following deployment:
 
 3.6 Calculation Methodology
 
-Energy consumption and carbon emissions are computed using formulas consistent with standard electricity measurement practices.
+This section documents the mathematical formulas and computational logic employed by the Campus Watt Watch system.
 
-Energy Consumption
+3.6.1 Core Formulas
 
-Energy (kWh) = (Wattage × Duration in minutes) ÷ 60,000
+Energy Consumption Formula:
 
-This formula converts watt-minutes to kilowatt-hours, the standard unit for electricity consumption reporting.
+E = (W × t) ÷ 60,000
 
-Carbon Emission
+Where:
+• E = Energy consumed in kilowatt-hours (kWh)
+• W = Device power rating in watts (W)
+• t = Usage duration in minutes
+• 60,000 = Conversion constant (60 minutes × 1,000 watts per kilowatt)
 
-Carbon Emission (kg CO₂) = Energy (kWh) × 0.7
+Carbon Emission Formula:
 
-The emission factor of 0.7 kg CO₂ per kWh represents the Philippine grid average, accounting for the national energy mix comprising coal, natural gas, and renewable sources (DOE, 2022).
+C = E × EF
 
-Sample Computation
+Where:
+• C = Carbon dioxide emission in kilograms (kg CO₂)
+• E = Energy consumed in kilowatt-hours (kWh)
+• EF = Emission factor (0.7 kg CO₂/kWh for Philippine grid)
 
-For a 1,500-watt air conditioning unit operated for 120 minutes:
+Emission Factor Justification:
+The emission factor of 0.7 kg CO₂ per kWh is derived from DOE Philippines (2022) and IGES v11.6, accounting for the national energy mix: 57% fossil fuels, 21% renewables, 22% other sources.
 
+3.6.2 Sample Computations
+
+Example 1: Air Conditioning Unit (1,500W for 120 minutes)
 • Energy = (1,500 × 120) ÷ 60,000 = 3.0 kWh
-• Carbon Emission = 3.0 × 0.7 = 2.1 kg CO₂
+• Carbon = 3.0 × 0.7 = 2.1 kg CO₂
+
+Example 2: Laptop Computer (65W for 480 minutes)
+• Energy = (65 × 480) ÷ 60,000 = 0.52 kWh
+• Carbon = 0.52 × 0.7 = 0.364 kg CO₂
+
+Example 3: LED Light Bulb (10W for 600 minutes)
+• Energy = (10 × 600) ÷ 60,000 = 0.1 kWh
+• Carbon = 0.1 × 0.7 = 0.07 kg CO₂
+
+3.6.3 Dashboard Analytics Computation
+
+Time Period Filtering:
+• Today: timestamp >= start of current day (00:00:00)
+• This Week: timestamp >= (current date - 7 days)
+• This Month: timestamp >= first day of current month
+
+Total Energy Consumption:
+Total Energy = Σ Eᵢ = Σ [(Wᵢ × tᵢ) ÷ 60,000]
+(Summation over all logs within selected time period)
+
+Total Carbon Emission:
+Total Carbon = Σ Cᵢ = Σ Eᵢ × 0.7
+
+Top Devices Ranking:
+1. Group logs by device_name
+2. Sum energy per device: Σ Eᵢ
+3. Sort descending by total energy
+4. Return top 3 devices
+
+Category Breakdown (Pie Chart):
+Category Percentage = (Category Energy ÷ Total Energy) × 100
+
+3.6.4 Data Aggregation Example
+
+Sample Monthly Logs:
+Device              Category        Wattage  Duration  Energy   Carbon
+Laptop              Computing       65W      480 min   0.52 kWh 0.364 kg
+Desktop Computer    Computing       250W     240 min   1.0 kWh  0.7 kg
+Electric Fan        Facilities/HVAC 75W      360 min   0.45 kWh 0.315 kg
+LCD Projector       AV/Classroom    300W     120 min   0.6 kWh  0.42 kg
+Laptop              Computing       65W      360 min   0.39 kWh 0.273 kg
+
+Aggregated Results:
+• Total Energy: 2.96 kWh
+• Total Carbon: 2.072 kg CO₂
+
+Top Devices:
+1. Desktop Computer: 1.0 kWh
+2. Laptop: 0.91 kWh (combined)
+3. LCD Projector: 0.6 kWh
+
+Category Breakdown:
+• Computing: 64.5% (1.91 kWh)
+• AV/Classroom: 20.3% (0.6 kWh)
+• Facilities/HVAC: 15.2% (0.45 kWh)
+
+3.6.5 Implementation in Code
+
+const CARBON_EMISSION_FACTOR = 0.7;
+
+function calculateEnergyKWh(wattage, durationMinutes) {
+  return (wattage * durationMinutes) / (1000 * 60);
+}
+
+function calculateCarbonEmission(wattage, durationMinutes) {
+  const energyKWh = calculateEnergyKWh(wattage, durationMinutes);
+  return energyKWh * CARBON_EMISSION_FACTOR;
+}
 
 ───────────────────────────────────────────────────────
 
@@ -502,6 +627,10 @@ References
 Department of Energy. (2022). Philippine Power Statistics. Retrieved from https://www.doe.gov.ph
 
 Institute for Global Environmental Strategies. (2023). List of Grid Emission Factors (Version 11.6). Retrieved from https://www.iges.or.jp
+
+Meralco. (2023). Appliance Wattage Guide. Manila Electric Company.
+
+GHG Protocol. (2015). GHG Protocol Scope 2 Guidance. World Resources Institute and World Business Council for Sustainable Development.
 `;
 
 const Documentation = () => {

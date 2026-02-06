@@ -67,7 +67,10 @@ export function DeviceCombobox({
                     setOpen(false);
                   }}
                 >
-                  <span className="truncate flex-1">{device.name}</span>
+                  <div className="flex items-center justify-between w-full">
+                    <span className="truncate flex-1">{device.name}</span>
+                    <span className="text-xs text-muted-foreground ml-2">{device.wattage}W</span>
+                  </div>
                   <Check
                     className={cn(
                       "ml-2 h-4 w-4 shrink-0",

@@ -23,9 +23,10 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Download, Search, Filter, Shield, Trash2, FileSpreadsheet, Calendar, Users, Eye, BarChart3, UserCog } from 'lucide-react';
+import { Download, Search, Filter, Shield, Trash2, FileSpreadsheet, Calendar, Users, Eye, BarChart3, UserCog, FlaskConical } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
+import ScenarioSimulation from './ScenarioSimulation';
 
 interface Member {
   user_id: string;
@@ -338,7 +339,7 @@ export default function AdminPanel() {
 
       {/* Tabs for different sections */}
       <Tabs defaultValue="members" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-flex">
+        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
           <TabsTrigger value="members" className="gap-2">
             <Users className="w-4 h-4" />
             Members
@@ -350,6 +351,10 @@ export default function AdminPanel() {
           <TabsTrigger value="logs" className="gap-2">
             <FileSpreadsheet className="w-4 h-4" />
             Energy Logs
+          </TabsTrigger>
+          <TabsTrigger value="simulation" className="gap-2">
+            <FlaskConical className="w-4 h-4" />
+            Predictive
           </TabsTrigger>
         </TabsList>
 
@@ -610,6 +615,10 @@ export default function AdminPanel() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+        {/* Scenario Simulation Tab */}
+        <TabsContent value="simulation">
+          <ScenarioSimulation />
         </TabsContent>
       </Tabs>
     </div>

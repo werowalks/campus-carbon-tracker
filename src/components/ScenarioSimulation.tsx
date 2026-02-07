@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { TrendingDown, Leaf, Zap, FlaskConical, ArrowRight } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 
 // Renewable grid emission factor (kg CO₂/kWh) — based on DOE PH targets
 const RENEWABLE_EMISSION_FACTOR = 0.4;
@@ -226,6 +227,94 @@ export default function ScenarioSimulation() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Chart Visualization */}
+          {baseline.totalEnergy > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Baseline vs Projected Comparison</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-6 md:grid-cols-2">
+                  {/* Energy Chart */}
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2 text-center font-medium">Energy (kWh)</p>
+                    <ResponsiveContainer width="100%" height={220}>
+                      <BarChart
+                        data={[
+                          { name: 'Baseline', value: baseline.totalEnergy },
+                          { name: 'Projected', value: anyActive ? projected.totalEnergy : baseline.totalEnergy },
+                        ]}
+                        margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" />
+                        <XAxis dataKey="name" className="text-xs fill-muted-foreground" tick={{ fontSize: 12 }} />
+                        <YAxis className="text-xs fill-muted-foreground" tick={{ fontSize: 11 }} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--popover))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            color: 'hsl(var(--popover-foreground))',
+                          }}
+                          formatter={(value: number) => [`${value.toFixed(2)} kWh`, 'Energy']}
+                        />
+                        <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={60}>
+                          <Cell fill="hsl(var(--primary))" />
+                          <Cell fill={anyActive ? 'hsl(142, 71%, 45%)' : 'hsl(var(--muted-foreground))'} />
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Carbon Chart */}
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2 text-center font-medium">CO₂ Emissions (kg)</p>
+                    <ResponsiveContainer width="100%" height={220}>
+                      <BarChart
+                        data={[
+                          { name: 'Baseline', value: baseline.totalCarbon },
+                          { name: 'Projected', value: anyActive ? projected.totalCarbon : baseline.totalCarbon },
+                        ]}
+                        margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" />
+                        <XAxis dataKey="name" className="text-xs fill-muted-foreground" tick={{ fontSize: 12 }} />
+                        <YAxis className="text-xs fill-muted-foreground" tick={{ fontSize: 11 }} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--popover))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            color: 'hsl(var(--popover-foreground))',
+                          }}
+                          formatter={(value: number) => [`${value.toFixed(4)} kg`, 'CO₂']}
+                        />
+                        <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={60}>
+                          <Cell fill="hsl(var(--primary))" />
+                          <Cell fill={anyActive ? 'hsl(142, 71%, 45%)' : 'hsl(var(--muted-foreground))'} />
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Legend */}
+                <div className="flex items-center justify-center gap-6 mt-4 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-sm bg-primary" />
+                    <span>Baseline</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: anyActive ? 'hsl(142, 71%, 45%)' : 'hsl(var(--muted-foreground))' }} />
+                    <span>Projected</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Reduction Summary */}
           {anyActive && (

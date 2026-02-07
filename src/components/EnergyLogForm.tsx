@@ -97,6 +97,11 @@ export default function EnergyLogForm() {
         continue;
       }
 
+      if (duration > 1440) {
+        toast.error(`Device "${device.deviceName}": Duration cannot exceed 24 hours (1440 minutes)`);
+        return;
+      }
+
       try {
         await addLog({
           device_name: device.deviceName,
@@ -254,12 +259,22 @@ export default function EnergyLogForm() {
                               <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                               <Input
                                 type="number"
-                                placeholder="Enter minutes"
+                                placeholder="Enter minutes (max 1440)"
                                 className="pl-10"
+                                min={1}
+                                max={1440}
                                 value={device.customMinutes}
-                                onChange={(e) => updateDevice(device.id, 'customMinutes', e.target.value)}
+                                onChange={(e) => {
+                                  const val = parseInt(e.target.value);
+                                  if (val > 1440) {
+                                    toast.error('Duration cannot exceed 24 hours (1440 minutes)');
+                                    return;
+                                  }
+                                  updateDevice(device.id, 'customMinutes', e.target.value);
+                                }}
                               />
                             </div>
+                            <p className="text-xs text-muted-foreground">Maximum: 1440 minutes (24 hours)</p>
                           </div>
                         )}
                       </div>

@@ -60,6 +60,7 @@ export default function AdminPanel() {
     monthVisits: 0,
   });
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
+  const [deletingUser, setDeletingUser] = useState<string | null>(null);
 
   const logs = getAllLogs();
   const stats = getStats();
@@ -161,6 +162,34 @@ export default function AdminPanel() {
       toast.error('Failed to update role');
     } finally {
       setUpdatingRole(null);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (!confirm(`Are you sure you want to delete "${userName}"? This will permanently remove their account and all their energy logs. This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      setDeletingUser(userId);
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await supabase.functions.invoke('delete-user', {
+        body: { user_id: userId },
+      });
+
+      if (response.error) throw response.error;
+
+      // Remove from local state
+      setMembers(prev => prev.filter(m => m.user_id !== userId));
+      toast.success(`User "${userName}" has been deleted`);
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      toast.error(error?.message || 'Failed to delete user');
+    } finally {
+      setDeletingUser(null);
     }
   };
 
@@ -403,19 +432,31 @@ export default function AdminPanel() {
                             </span>
                           </TableCell>
                           <TableCell>
-                            <Select
-                              value={member.role}
-                              onValueChange={(value: 'admin' | 'user') => handleRoleChange(member.user_id, value)}
-                              disabled={updatingRole === member.user_id}
-                            >
-                              <SelectTrigger className="w-28 h-8 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="user">User</SelectItem>
-                                <SelectItem value="admin">Admin</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <div className="flex items-center gap-2">
+                              <Select
+                                value={member.role}
+                                onValueChange={(value: 'admin' | 'user') => handleRoleChange(member.user_id, value)}
+                                disabled={updatingRole === member.user_id}
+                              >
+                                <SelectTrigger className="w-28 h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="user">User</SelectItem>
+                                  <SelectItem value="admin">Admin</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                onClick={() => handleDeleteUser(member.user_id, member.name)}
+                                disabled={deletingUser === member.user_id}
+                                title="Delete user"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}

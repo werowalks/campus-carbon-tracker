@@ -206,6 +206,7 @@ The scope definition establishes clear boundaries for the development effort, di
 | Role-Based Access Control | Differentiated interfaces for regular users and administrators |
 | Responsive Interface | Accessibility across desktop, tablet, and mobile devices |
 | Data Visualization | Charts depicting consumption by category and time period |
+| Predictive Modeling | Scenario-based projections for energy reduction and renewable grid transitions |
 
 **Features Outside Scope:**
 
@@ -217,7 +218,6 @@ The scope definition establishes clear boundaries for the development effort, di
 | Water and Waste Tracking | Current focus restricted to electricity consumption |
 | Native Mobile Application | Web-based approach provides adequate device coverage |
 | Billing System Integration | Falls outside sustainability tracking objectives |
-| Predictive Analytics | Identified as potential future enhancement |
 
 ### 3.2.2 System Architecture
 
@@ -834,12 +834,237 @@ This modular approach ensures consistency across all system components and facil
 
 ---
 
+## 3.7 Predictive Modeling Methodology
+
+The Campus Watt Watch system incorporates a predictive modeling module that enables administrators to simulate the impact of sustainability interventions on campus energy consumption and carbon emissions. This section documents the mathematical models, assumptions, and data sources underlying the scenario simulation feature.
+
+### 3.7.1 Modeling Approach
+
+The predictive modeling component employs a **deterministic scenario analysis** approach, a widely used technique in energy planning and environmental impact assessment (IPCC, 2006; IEA, 2022). Rather than relying on probabilistic forecasting, which requires extensive historical datasets, deterministic modeling applies known transformation factors to current consumption data to project outcomes under hypothetical conditions.
+
+This approach was selected for several reasons:
+
+| Criterion | Justification |
+|-----------|---------------|
+| **Data Availability** | The system operates on user-reported consumption logs rather than continuous sensor data, making deterministic projections more appropriate than statistical forecasting |
+| **Transparency** | Each scenario applies a clearly defined mathematical transformation, making results interpretable and auditable |
+| **Academic Validity** | Deterministic scenario analysis is an established methodology in energy planning literature (IPCC Guidelines for National Greenhouse Gas Inventories) |
+| **Actionability** | Results directly correspond to specific interventions that campus administrators can implement |
+
+### 3.7.2 Scenario Definitions
+
+Three independent scenarios were developed, each targeting a distinct sustainability intervention. Scenarios can be applied individually or in combination to assess cumulative impact.
+
+#### Scenario 1: Electricity Reduction (10% Conservation Target)
+
+**Rationale:**
+The 10% reduction target aligns with the Philippine Energy Efficiency and Conservation Roadmap published by the Department of Energy (DOE, 2022), which recommends institutional energy conservation targets of 10–15% for government and educational facilities. This conservative baseline was selected to reflect achievable gains through behavioral interventions such as equipment scheduling, occupancy-based controls, and awareness campaigns.
+
+**Mathematical Model:**
+
+```
+E_projected = E_baseline × (1 - r)
+```
+
+Where:
+- `E_projected` = Projected energy consumption after intervention (kWh)
+- `E_baseline` = Current total energy consumption for the period (kWh)
+- `r` = Reduction factor (0.10 for 10% reduction)
+
+**Carbon Impact:**
+
+```
+C_projected = E_projected × EF_grid
+```
+
+Where:
+- `C_projected` = Projected carbon emissions (kg CO₂)
+- `EF_grid` = Current grid emission factor (0.7 kg CO₂/kWh)
+
+**Source:** Department of Energy Philippines. (2022). *Philippine Energy Efficiency and Conservation Roadmap*. DOE PH.
+
+#### Scenario 2: Renewable Energy Grid Transition
+
+**Rationale:**
+This scenario models the impact of transitioning the campus electricity supply from the conventional Philippine grid to a renewable energy-dominant grid. The renewable grid emission factor of **0.4 kg CO₂/kWh** is derived from the DOE Philippines' target for increased renewable energy penetration under the Renewable Energy Act (RA 9513) and the National Renewable Energy Program (NREP).
+
+The factor of 0.4 kg CO₂/kWh represents a blended emission rate achievable through a combination of solar, wind, and hydroelectric generation, accounting for intermittency and backup requirements. This value is consistent with targets published by IGES (2023) for countries transitioning toward 35–50% renewable energy share.
+
+**Mathematical Model:**
+
+```
+C_projected = E_baseline × EF_renewable
+```
+
+Where:
+- `C_projected` = Projected carbon emissions under renewable grid (kg CO₂)
+- `E_baseline` = Current total energy consumption (kWh) — energy consumption remains unchanged
+- `EF_renewable` = Renewable grid emission factor (0.4 kg CO₂/kWh)
+
+**Emission Factor Comparison:**
+
+| Grid Type | Emission Factor | Source |
+|-----------|----------------|--------|
+| Current Philippine Grid | 0.7 kg CO₂/kWh | DOE PH (2022), IGES v11.6 |
+| Renewable-Dominant Grid | 0.4 kg CO₂/kWh | DOE PH NREP Targets, IGES Projections |
+
+**Carbon Reduction:**
+
+```
+Reduction (%) = [(EF_grid - EF_renewable) ÷ EF_grid] × 100
+             = [(0.7 - 0.4) ÷ 0.7] × 100
+             = 42.86%
+```
+
+This scenario demonstrates that grid decarbonization alone can achieve approximately a 43% reduction in carbon emissions without any change in energy consumption behavior.
+
+**Sources:**
+- Department of Energy Philippines. (2022). *National Renewable Energy Program (NREP)*. DOE PH.
+- Republic Act No. 9513. *Renewable Energy Act of 2008*. Congress of the Philippines.
+- Institute for Global Environmental Strategies. (2023). *List of Grid Emission Factors* (Version 11.6). IGES.
+
+#### Scenario 3: Category Exclusion (Device Phase-Out)
+
+**Rationale:**
+This scenario enables administrators to assess the impact of phasing out an entire category of electrical devices from campus operations. This is particularly relevant for identifying high-impact intervention targets—categories that contribute disproportionately to overall consumption.
+
+**Mathematical Model:**
+
+```
+E_projected = Σ Eᵢ   where category(i) ≠ excluded_category
+```
+
+Where:
+- `E_projected` = Total energy excluding the selected category (kWh)
+- `Eᵢ` = Energy consumption of individual log entry `i`
+- `excluded_category` = The device category selected for phase-out
+
+**Carbon Impact:**
+
+```
+C_projected = E_projected × EF_active
+```
+
+Where `EF_active` is the emission factor currently in effect (either 0.7 or 0.4 depending on Scenario 2 status).
+
+### 3.7.3 Combined Scenario Computation
+
+When multiple scenarios are activated simultaneously, the system applies transformations in a defined sequence to avoid compounding errors:
+
+**Computation Order:**
+
+| Step | Operation | Description |
+|------|-----------|-------------|
+| 1 | Category Exclusion | Filter out logs from the excluded category |
+| 2 | Energy Reduction | Apply the 10% reduction multiplier to the filtered total |
+| 3 | Emission Factor | Apply the active emission factor (grid or renewable) |
+
+**Combined Formula:**
+
+```
+E_projected = [Σ Eᵢ (where category ≠ excluded)] × (1 - r)
+C_projected = E_projected × EF_active
+```
+
+Where:
+- `r` = 0.10 if Scenario 1 is active, 0 otherwise
+- `EF_active` = 0.4 if Scenario 2 is active, 0.7 otherwise
+
+### 3.7.4 Reduction Metrics
+
+The system computes and displays percentage reductions for both energy and carbon:
+
+```
+Energy Reduction (%) = [(E_baseline - E_projected) ÷ E_baseline] × 100
+Carbon Reduction (%) = [(C_baseline - C_projected) ÷ C_baseline] × 100
+```
+
+### 3.7.5 Sample Computation
+
+**Given:** Monthly baseline data of 2.96 kWh energy and 2.072 kg CO₂ (from Section 3.6.4)
+
+**Scenario: All three interventions active** (10% reduction + renewable grid + exclude Facilities/HVAC category)
+
+| Step | Calculation | Result |
+|------|-------------|--------|
+| Baseline Energy | Σ all logs | 2.96 kWh |
+| After Category Exclusion (remove HVAC: 0.45 kWh) | 2.96 - 0.45 | 2.51 kWh |
+| After 10% Reduction | 2.51 × 0.9 | 2.259 kWh |
+| Carbon with Renewable Grid | 2.259 × 0.4 | 0.9036 kg CO₂ |
+
+**Reduction Summary:**
+
+| Metric | Baseline | Projected | Reduction |
+|--------|----------|-----------|-----------|
+| Energy | 2.96 kWh | 2.259 kWh | 23.7% |
+| Carbon | 2.072 kg CO₂ | 0.9036 kg CO₂ | 56.4% |
+
+### 3.7.6 Visualization
+
+The predictive modeling interface presents results through:
+
+1. **Side-by-side comparison cards** displaying baseline and projected values for energy (kWh) and carbon emissions (kg CO₂)
+2. **Bar chart visualization** comparing baseline vs. projected values across both metrics
+3. **Reduction summary panel** showing percentage decreases and absolute values saved
+
+### 3.7.7 Implementation in Code
+
+The predictive modeling logic is implemented in TypeScript within the `ScenarioSimulation` component:
+
+```typescript
+// Renewable grid emission factor (kg CO₂/kWh) — based on DOE PH targets
+const RENEWABLE_EMISSION_FACTOR = 0.4;
+
+// Scenario computation logic
+let filteredLogs = monthLogs;
+
+// Step 1: Category exclusion
+if (removeCategory && excludedCategory) {
+  filteredLogs = filteredLogs.filter(log => log.category !== excludedCategory);
+}
+
+// Step 2: Calculate energy with optional 10% reduction
+let totalEnergy = filteredLogs.reduce(
+  (sum, log) => sum + calculateEnergyKWh(log.wattage, log.duration), 0
+);
+if (reduceElectricity) {
+  totalEnergy *= 0.9;
+}
+
+// Step 3: Apply emission factor (grid or renewable)
+const emissionFactor = useRenewableGrid ? RENEWABLE_EMISSION_FACTOR : CARBON_EMISSION_FACTOR;
+const totalCarbon = totalEnergy * emissionFactor;
+```
+
+### 3.7.8 Limitations and Assumptions
+
+| Limitation | Description |
+|------------|-------------|
+| **Static Reduction Factor** | The 10% reduction is applied uniformly across all devices; actual savings may vary by category |
+| **Linear Emission Model** | Assumes a constant emission factor regardless of time-of-day or seasonal generation mix variations |
+| **No Behavioral Modeling** | Does not account for rebound effects or changes in user behavior following interventions |
+| **Single-Period Analysis** | Projections are based on current month data only; multi-period trend analysis is not included |
+
+These limitations are acknowledged as areas for future enhancement, potentially incorporating machine learning-based forecasting and time-series analysis as the system accumulates sufficient historical data.
+
+---
+
 ## References
 
 Department of Energy. (2022). *Philippine Power Statistics*. Retrieved from https://www.doe.gov.ph
 
+Department of Energy Philippines. (2022). *Philippine Energy Efficiency and Conservation Roadmap*. DOE PH.
+
+Department of Energy Philippines. (2022). *National Renewable Energy Program (NREP)*. DOE PH.
+
 Institute for Global Environmental Strategies. (2023). *List of Grid Emission Factors* (Version 11.6). Retrieved from https://www.iges.or.jp
+
+Intergovernmental Panel on Climate Change. (2006). *2006 IPCC Guidelines for National Greenhouse Gas Inventories*. IGES, Japan.
+
+International Energy Agency. (2022). *World Energy Outlook 2022*. IEA, Paris.
 
 Meralco. (2023). *Appliance Wattage Guide*. Manila Electric Company.
 
 GHG Protocol. (2015). *GHG Protocol Scope 2 Guidance*. World Resources Institute and World Business Council for Sustainable Development.
+
+Republic Act No. 9513. *Renewable Energy Act of 2008*. Congress of the Philippines.

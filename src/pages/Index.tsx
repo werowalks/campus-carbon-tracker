@@ -47,9 +47,11 @@ export default function Index() {
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="text-lg px-8">
-              Learn More
-            </Button>
+            <Link to="/demo">
+              <Button size="lg" variant="outline" className="text-lg px-8">
+                Learn More
+              </Button>
+            </Link>
           </div>
         </div>
 

@@ -15,6 +15,7 @@ import Dashboard from "./components/Dashboard";
 import EnergyLogForm from "./components/EnergyLogForm";
 import AdminPanel from "./components/AdminPanel";
 import Documentation from "./pages/Documentation";
+import Demo from "./pages/Demo";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ function AppContent() {
           }
         />
         <Route path="/docs" element={<Documentation />} />
+        <Route path="/demo" element={<Demo />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

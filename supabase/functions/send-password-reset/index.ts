@@ -9,6 +9,45 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Rate limiting: 3 requests per 10 minutes per IP
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+const MAX_REQUESTS_PER_WINDOW = 3;
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (entry && now < entry.resetTime) {
+    if (entry.count >= MAX_REQUESTS_PER_WINDOW) {
+      return false;
+    }
+    entry.count++;
+  } else {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+  }
+  return true;
+}
+
+// Allowed domains for reset links
+const ALLOWED_HOSTNAMES = [
+  "localhost",
+  "campus-green-view.lovable.app",
+  "id-preview--ad520d2f-cdb1-49bf-a686-a5f42fc927f7.lovable.app",
+];
+
+function isAllowedResetLink(link: string): boolean {
+  try {
+    const url = new URL(link);
+    return ALLOWED_HOSTNAMES.some(
+      (h) => url.hostname === h || url.hostname.endsWith(`.${h}`)
+    );
+  } catch {
+    return false;
+  }
+}
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 interface PasswordResetRequest {
   email: string;
   resetLink: string;
@@ -16,21 +55,46 @@ interface PasswordResetRequest {
 
 const handler = async (req: Request): Promise<Response> => {
   console.log("Password reset email function called");
-  
-  // Handle CORS preflight requests
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { email, resetLink }: PasswordResetRequest = await req.json();
-    console.log("Sending password reset email to:", email);
+    // Rate limiting
+    const clientIp =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      "unknown";
 
-    // Validate required fields
-    if (!email || !resetLink) {
-      console.error("Missing required fields:", { email: !!email, resetLink: !!resetLink });
-      throw new Error("Missing required fields: email and resetLink are required");
+    if (!checkRateLimit(clientIp)) {
+      console.warn("Rate limit exceeded for IP:", clientIp);
+      return new Response(
+        JSON.stringify({ success: false, error: "Too many requests. Please try again later." }),
+        { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
     }
+
+    const { email, resetLink }: PasswordResetRequest = await req.json();
+
+    // Validate email
+    if (!email || typeof email !== "string" || !emailRegex.test(email) || email.length > 255) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Invalid email address" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Validate resetLink domain
+    if (!resetLink || typeof resetLink !== "string" || !isAllowedResetLink(resetLink)) {
+      console.error("Rejected invalid reset link domain:", resetLink);
+      return new Response(
+        JSON.stringify({ success: false, error: "Invalid reset link" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    console.log("Sending password reset email to:", email.substring(0, 3) + "***");
 
     const emailResponse = await resend.emails.send({
       from: "Carbon Footprint Dashboard <onboarding@resend.dev>",
@@ -82,23 +146,17 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    console.log("Password reset email sent successfully:", emailResponse);
+    console.log("Password reset email sent successfully");
 
     return new Response(JSON.stringify({ success: true, data: emailResponse }), {
       status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
+      headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (error: any) {
     console.error("Error in send-password-reset function:", error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      JSON.stringify({ success: false, error: "An error occurred processing your request." }),
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 };

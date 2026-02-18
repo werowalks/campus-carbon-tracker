@@ -16,6 +16,8 @@ import EnergyLogForm from "./components/EnergyLogForm";
 import AdminPanel from "./components/AdminPanel";
 import Documentation from "./pages/Documentation";
 import Demo from "./pages/Demo";
+import ResetPassword from "./pages/ResetPassword";
+import AuthCallback from "./pages/AuthCallback";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +30,8 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route
           path="/dashboard"
           element={

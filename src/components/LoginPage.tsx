@@ -122,30 +122,12 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // First, generate the password reset link using Supabase
-      const { data, error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail.trim(), {
-        redirectTo: `${window.location.origin}/login`,
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
       });
 
       if (error) {
         setErrors({ forgotPassword: error.message });
-        setIsLoading(false);
-        return;
-      }
-
-      // Call our edge function to send the email via Resend
-      const { error: fnError } = await supabase.functions.invoke('send-password-reset', {
-        body: {
-          email: forgotPasswordEmail.trim(),
-          resetLink: `${window.location.origin}/login?type=recovery`,
-        },
-      });
-
-      if (fnError) {
-        console.error('Error sending password reset email:', fnError);
-        // Still show success since the Supabase reset was initiated
-        setResetEmailSent(true);
-        toast.success('Password reset email sent! Check your inbox.');
       } else {
         setResetEmailSent(true);
         toast.success('Password reset email sent! Check your inbox.');

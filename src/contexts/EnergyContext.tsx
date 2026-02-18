@@ -18,6 +18,7 @@ interface EnergyContextType {
   logs: EnergyLog[];
   isLoading: boolean;
   addLog: (log: Omit<EnergyLog, 'id' | 'carbon_emission' | 'user_id'>) => Promise<void>;
+  updateLog: (id: string, updates: Partial<Pick<EnergyLog, 'device_name' | 'category' | 'wattage' | 'duration'>>) => Promise<void>;
   deleteLog: (id: string) => Promise<void>;
   getStats: (userId?: string) => DashboardStats;
   getAllLogs: () => EnergyLog[];
@@ -115,6 +116,34 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateLog = async (id: string, updates: Partial<Pick<EnergyLog, 'device_name' | 'category' | 'wattage' | 'duration'>>) => {
+    const existing = logs.find(log => log.id === id);
+    if (!existing) throw new Error('Log not found');
+
+    const newWattage = updates.wattage ?? existing.wattage;
+    const newDuration = updates.duration ?? existing.duration;
+    const newCarbonEmission = calculateCarbonEmission(newWattage, newDuration);
+
+    const { error } = await supabase
+      .from('energy_logs')
+      .update({
+        ...updates,
+        carbon_emission: newCarbonEmission,
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating log:', error);
+      throw error;
+    }
+
+    setLogs(prev => prev.map(log =>
+      log.id === id
+        ? { ...log, ...updates, carbon_emission: newCarbonEmission }
+        : log
+    ));
+  };
+
   const deleteLog = async (id: string) => {
     const { error } = await supabase
       .from('energy_logs')
@@ -200,7 +229,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <EnergyContext.Provider value={{ logs, isLoading, addLog, deleteLog, getStats, getAllLogs, refreshLogs }}>
+    <EnergyContext.Provider value={{ logs, isLoading, addLog, updateLog, deleteLog, getStats, getAllLogs, refreshLogs }}>
       {children}
     </EnergyContext.Provider>
   );

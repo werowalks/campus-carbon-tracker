@@ -9,13 +9,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DeviceCombobox } from '@/components/DeviceCombobox';
+import EditEnergyLogDialog from '@/components/EditEnergyLogDialog';
 import { toast } from 'sonner';
 import { 
   Zap, 
   Clock, 
   PlusCircle,
   Trash2,
-  Plug
+  Plug,
+  Pencil
 } from 'lucide-react';
 
 interface DeviceEntry {
@@ -29,7 +31,8 @@ interface DeviceEntry {
 
 export default function EnergyLogForm() {
   const { user } = useAuth();
-  const { addLog, logs } = useEnergy();
+  const { addLog, logs, deleteLog } = useEnergy();
+  const [editingLog, setEditingLog] = useState<typeof logs[0] | null>(null);
   
   const [devices, setDevices] = useState<DeviceEntry[]>([
     { id: '1', deviceName: '', category: '', wattage: '', timeInterval: '', customMinutes: '' }
@@ -335,6 +338,31 @@ export default function EnergyLogForm() {
                           {log.duration} min • {calculateEnergyKWh(log.wattage, log.duration).toFixed(3)} kWh
                         </p>
                       </div>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-primary"
+                          onClick={() => setEditingLog(log)}
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          onClick={async () => {
+                            try {
+                              await deleteLog(log.id);
+                              toast.success('Log deleted');
+                            } catch {
+                              toast.error('Failed to delete log');
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -359,6 +387,14 @@ export default function EnergyLogForm() {
           </Card>
         </div>
       </div>
+
+      {editingLog && (
+        <EditEnergyLogDialog
+          log={editingLog}
+          open={!!editingLog}
+          onOpenChange={(open) => { if (!open) setEditingLog(null); }}
+        />
+      )}
     </div>
   );
 }

@@ -371,7 +371,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <DialogHeader>
             <DialogTitle>Change Profile Photo</DialogTitle>
             <DialogDescription>
-              Upload a new profile picture (max 2MB)
+              Upload a new profile picture (max 2MB). Your profile photo will be publicly visible to all users. Please upload an appropriate image.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center gap-6 py-4">

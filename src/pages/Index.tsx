@@ -13,7 +13,7 @@ export default function Index() {
           <div className="w-10 h-10 rounded-xl eco-gradient flex items-center justify-center">
             <Leaf className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-display font-bold text-xl">CarbonTrack</span>
+          <span className="font-display font-bold text-xl">WattLog</span>
         </div>
         <Link to="/login">
           <Button variant="outline">

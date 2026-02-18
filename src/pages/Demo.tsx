@@ -80,7 +80,7 @@ export default function Demo() {
               <div className="w-8 h-8 rounded-lg eco-gradient flex items-center justify-center">
                 <Leaf className="w-4 h-4 text-primary-foreground" />
               </div>
-              <span className="font-display font-bold">CarbonTrack Demo</span>
+              <span className="font-display font-bold">WattLog Demo</span>
             </div>
           </div>
           <Link to="/login">
@@ -95,7 +95,7 @@ export default function Demo() {
         {/* Role Selector */}
         <div className="text-center space-y-4">
           <h1 className="text-3xl md:text-4xl font-display font-bold">
-            Explore CarbonTrack
+            Explore WattLog
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             See how the platform works for different roles. Switch between User and Admin views below.

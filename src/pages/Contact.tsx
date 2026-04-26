@@ -62,10 +62,9 @@ export default function Contact() {
               onClick={trackEmailClick}
               className="text-xl md:text-2xl font-display font-semibold text-primary hover:underline break-all"
             >
-              campuswattwatch@gmail.com
             </a>
+          </div>
         </div>
-
       </main>
 
       {/* Footer */}

@@ -190,19 +190,19 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
       period === 'year' ? yearLogs :
       monthLogs;
 
-    // Top devices
-    const deviceUsage: Record<string, { usage: number; category: string }> = {};
+    // Top devices (aggregate energy + carbon, return up to 10)
+    const deviceUsage: Record<string, { usage: number; carbon: number; category: string }> = {};
     periodLogs.forEach(log => {
       if (!deviceUsage[log.device_name]) {
-        deviceUsage[log.device_name] = { usage: 0, category: log.category };
+        deviceUsage[log.device_name] = { usage: 0, carbon: 0, category: log.category };
       }
       deviceUsage[log.device_name].usage += calculateEnergyKWh(log.wattage, log.duration);
+      deviceUsage[log.device_name].carbon += log.carbon_emission;
     });
 
     const topDevices = Object.entries(deviceUsage)
       .map(([name, data]) => ({ name, ...data }))
-      .sort((a, b) => b.usage - a.usage)
-      .slice(0, 10);
+      .sort((a, b) => b.usage - a.usage);
 
     // Category breakdown
     const categoryUsage: Record<string, number> = {};

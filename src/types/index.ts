@@ -32,7 +32,7 @@ export interface DashboardStats {
   totalCarbonMonth: number;
   totalEnergyYear: number;
   totalCarbonYear: number;
-  topDevices: { name: string; usage: number; category: string }[];
+  topDevices: { name: string; usage: number; carbon: number; category: string }[];
   categoryBreakdown: { category: string; percentage: number; energy: number }[];
 }
 

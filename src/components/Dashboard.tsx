@@ -57,7 +57,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Overview */}
-      <Tabs defaultValue="today" className="space-y-4">
+      <Tabs value={period} onValueChange={(v) => setPeriod(v as typeof period)} className="space-y-4">
         <TabsList>
           <TabsTrigger value="today" className="gap-2">
             <Clock className="w-4 h-4" />

@@ -97,14 +97,16 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey) as any
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    }) as any
     const redirectTo = getRedirectUrl(req)
 
-    const { data, error } = await supabase.auth.admin.generateLink({
-      type: 'signup',
+    const { data, error } = await authClient.auth.signUp({
       email,
       password,
       options: {
-        redirectTo,
+        emailRedirectTo: redirectTo,
         data: { name },
       },
     })
@@ -114,7 +116,7 @@ Deno.serve(async (req) => {
       const alreadyRegistered = /already|registered|exists/i.test(error.message)
 
       if (alreadyRegistered) {
-        const { error: resendError } = await supabase.auth.resend({
+        const { error: resendError } = await authClient.auth.resend({
           type: 'signup',
           email,
           options: { emailRedirectTo: redirectTo },
@@ -129,12 +131,6 @@ Deno.serve(async (req) => {
         success: true,
         message: 'If this email needs confirmation, please check your inbox.',
       })
-    }
-
-    const confirmationUrl = data?.properties?.action_link
-    if (!confirmationUrl) {
-      console.error('Signup link generation returned no action link')
-      return jsonResponse({ error: 'Unable to create confirmation link.' }, 500)
     }
 
     const userId = data?.user?.id
@@ -159,13 +155,6 @@ Deno.serve(async (req) => {
       if (!existingRole) {
         await supabase.from('user_roles').insert({ user_id: userId, role: 'user' })
       }
-    }
-
-    try {
-      await enqueueAuthEmail(supabase, 'signup', email, confirmationUrl)
-    } catch (enqueueError) {
-      console.error('Failed to enqueue signup confirmation', { error: enqueueError })
-      return jsonResponse({ error: 'Unable to send confirmation email.' }, 500)
     }
 
     return jsonResponse({

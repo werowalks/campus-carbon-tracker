@@ -220,6 +220,8 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
       totalCarbonWeek: weekTotals.carbon,
       totalEnergyMonth: monthTotals.energy,
       totalCarbonMonth: monthTotals.carbon,
+      totalEnergyYear: yearTotals.energy,
+      totalCarbonYear: yearTotals.carbon,
       topDevices,
       categoryBreakdown,
     };

@@ -22,9 +22,16 @@ const CHART_COLORS = [
 export default function Dashboard() {
   const { user, profile, isAdmin } = useAuth();
   const { getStats } = useEnergy();
-  
+  const [period, setPeriod] = useState<'today' | 'week' | 'month' | 'year'>('today');
+
   // Get user-specific stats for regular users, all stats for admins
-  const stats = getStats(isAdmin ? undefined : user?.id);
+  const stats = getStats(isAdmin ? undefined : user?.id, period);
+
+  const periodLabel =
+    period === 'today' ? 'today' :
+    period === 'week' ? 'this week' :
+    period === 'year' ? 'this year' :
+    'this month';
 
   const pieData = stats.categoryBreakdown.map((item, index) => ({
     name: item.category,

@@ -236,7 +236,7 @@ export default function Dashboard() {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-sm">{device.usage.toFixed(2)} kWh</p>
-                      <p className="text-xs text-muted-foreground">this month</p>
+                      <p className="text-xs text-muted-foreground">{periodLabel}</p>
                     </div>
                   </div>
                 ))

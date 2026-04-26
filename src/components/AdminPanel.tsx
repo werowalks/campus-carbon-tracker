@@ -303,6 +303,111 @@ export default function AdminPanel() {
     toast.success(`Exported ${filteredLogs.length} records to Excel`);
   };
 
+  const downloadFile = (content: string, filename: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportContactAnalyticsCSV = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('site_visits')
+        .select('visited_at, page_path, visitor_id, user_agent')
+        .in('page_path', ['/contact', '/contact/email-click'])
+        .order('visited_at', { ascending: false });
+
+      if (error) throw error;
+
+      const headers = ['Date', 'Time', 'Event Type', 'Page Path', 'Visitor ID', 'User Agent'];
+      const rows = (data || []).map(v => [
+        format(new Date(v.visited_at), 'yyyy-MM-dd'),
+        format(new Date(v.visited_at), 'HH:mm:ss'),
+        v.page_path === '/contact/email-click' ? 'Email Click' : 'Page View',
+        v.page_path || '',
+        v.visitor_id || '',
+        (v.user_agent || '').replace(/"/g, '""'),
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      downloadFile(
+        csvContent,
+        `contact-analytics-${format(new Date(), 'yyyy-MM-dd')}.csv`,
+        'text/csv;charset=utf-8;'
+      );
+      toast.success(`Exported ${rows.length} contact analytics records to CSV`);
+    } catch (error) {
+      console.error('Error exporting contact analytics:', error);
+      toast.error('Failed to export contact analytics');
+    }
+  };
+
+  const exportContactAnalyticsExcel = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('site_visits')
+        .select('visited_at, page_path, visitor_id, user_agent')
+        .in('page_path', ['/contact', '/contact/email-click'])
+        .order('visited_at', { ascending: false });
+
+      if (error) throw error;
+
+      const records = data || [];
+      const pageViews = records.filter(r => r.page_path === '/contact').length;
+      const emailClicks = records.filter(r => r.page_path === '/contact/email-click').length;
+      const conversionRate = pageViews > 0 ? ((emailClicks / pageViews) * 100).toFixed(2) : '0.00';
+
+      const summary = [
+        ['CONTACT PAGE ANALYTICS REPORT'],
+        [`Generated: ${format(new Date(), 'MMMM d, yyyy HH:mm')}`],
+        [''],
+        ['SUMMARY'],
+        [`Total Contact Page Views: ${pageViews}`],
+        [`Total Email Link Clicks: ${emailClicks}`],
+        [`Conversion Rate: ${conversionRate}%`],
+        [`Total Records: ${records.length}`],
+        [''],
+        ['DETAILED EVENTS'],
+      ];
+
+      const headers = ['Date', 'Time', 'Event Type', 'Page Path', 'Visitor ID', 'User Agent'];
+      const rows = records.map(v => [
+        format(new Date(v.visited_at), 'yyyy-MM-dd'),
+        format(new Date(v.visited_at), 'HH:mm:ss'),
+        v.page_path === '/contact/email-click' ? 'Email Click' : 'Page View',
+        v.page_path || '',
+        v.visitor_id || '',
+        (v.user_agent || '').replace(/"/g, '""'),
+      ]);
+
+      const csvContent = [
+        ...summary.map(row => row.join(',')),
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      downloadFile(
+        csvContent,
+        `contact-analytics-report-${format(new Date(), 'yyyy-MM-dd')}.xls`,
+        'application/vnd.ms-excel;charset=utf-8;'
+      );
+      toast.success(`Exported ${records.length} contact analytics records to Excel`);
+    } catch (error) {
+      console.error('Error exporting contact analytics:', error);
+      toast.error('Failed to export contact analytics');
+    }
+  };
+
   const handleDelete = async (id: string) => {
     try {
       await deleteLog(id);

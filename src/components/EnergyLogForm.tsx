@@ -381,7 +381,7 @@ export default function EnergyLogForm() {
             <CardContent className="pt-6">
               <h4 className="font-semibold text-sm mb-2">💡 Quick Tips</h4>
               <ul className="text-xs text-muted-foreground space-y-1">
-                <li>• Select a category first, then choose a device</li>
+                <li>• Pick a device — its category and wattage auto-fill</li>
                 <li>• Wattage auto-fills based on category average</li>
                 <li>• Log regularly for better tracking</li>
               </ul>

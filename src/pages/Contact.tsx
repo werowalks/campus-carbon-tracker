@@ -64,17 +64,8 @@ export default function Contact() {
             >
               campuswattwatch@gmail.com
             </a>
-          </div>
-
-          <div className="mt-10">
-            <a href="mailto:campuswattwatch@gmail.com" onClick={trackEmailClick}>
-              <Button size="lg" className="eco-gradient text-lg px-8">
-                <Mail className="w-5 h-5 mr-2" />
-                Send us an Email
-              </Button>
-            </a>
-          </div>
         </div>
+
       </main>
 
       {/* Footer */}

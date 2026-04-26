@@ -7,6 +7,8 @@ const corsHeaders = {
 
 const SITE_NAME = 'WattLog'
 const SITE_URL = 'https://campuswattwatch.com'
+const SENDER_DOMAIN = 'notify.campuswattwatch.com'
+const FROM_DOMAIN = 'campuswattwatch.com'
 
 type AuthEmailType = 'signup' | 'recovery'
 const allowedOrigins = new Set([
@@ -39,31 +41,73 @@ function getResetRedirectUrl(req: Request): string {
   return `${safeOrigin}/reset-password`
 }
 
-async function sendAuthEmail(
+function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+}
+
+function renderAuthEmail(type: AuthEmailType, confirmationUrl: string, email: string, name?: string) {
+  const title = type === 'recovery' ? 'Reset your WattLog password' : 'Confirm your WattLog email'
+  const actionLabel = type === 'recovery' ? 'Reset Password' : 'Verify Email'
+  const greeting = name ? `Hi ${escapeHtml(name)},` : 'Hi,'
+  const message = type === 'recovery'
+    ? 'Use the secure link below to reset your password.'
+    : `Use the secure link below to verify ${escapeHtml(email)} and finish creating your account.`
+  const safeUrl = escapeHtml(confirmationUrl)
+
+  const html = `<!doctype html><html><body style="margin:0;background:#ffffff;font-family:Arial,sans-serif;color:#122018"><div style="max-width:560px;margin:0 auto;padding:32px 24px"><h1 style="margin:0 0 16px;color:#1f2937;font-size:24px">${title}</h1><p style="font-size:15px;line-height:1.6;color:#4b5563">${greeting}</p><p style="font-size:15px;line-height:1.6;color:#4b5563">${message}</p><a href="${safeUrl}" style="display:inline-block;background:#2f6b4f;color:#ffffff;text-decoration:none;border-radius:8px;padding:12px 20px;font-weight:700">${actionLabel}</a><p style="margin-top:28px;font-size:12px;line-height:1.5;color:#6b7280">If you didn't request this email, you can safely ignore it.</p></div></body></html>`
+  const text = `${title}\n\n${greeting}\n\n${message}\n\n${confirmationUrl}`
+
+  return { html, text, subject: title }
+}
+
+async function enqueueAuthEmail(
   supabase: any,
-  email: string,
   type: AuthEmailType,
-  redirectTo: string,
-  password?: string,
+  email: string,
+  confirmationUrl: string,
   name?: string,
 ) {
-  if (type === 'signup') {
-    return await supabase.auth.admin.generateLink({
-      type: 'signup',
-      email,
-      password,
-      options: {
-        redirectTo,
-        data: { name },
-      },
-    })
-  }
+  const messageId = crypto.randomUUID()
+  const { html, text, subject } = renderAuthEmail(type, confirmationUrl, email, name)
 
-  return await supabase.auth.admin.generateLink({
-    type: 'recovery',
-    email,
-    options: { redirectTo },
+  await supabase.from('email_send_log').insert({
+    message_id: messageId,
+    template_name: type,
+    recipient_email: email,
+    status: 'pending',
   })
+
+  const { error } = await supabase.rpc('enqueue_email', {
+    queue_name: 'auth_emails',
+    payload: {
+      message_id: messageId,
+      to: email,
+      from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+      sender_domain: SENDER_DOMAIN,
+      subject,
+      html,
+      text,
+      purpose: 'transactional',
+      label: type,
+      idempotency_key: messageId,
+      queued_at: new Date().toISOString(),
+    },
+  })
+
+  if (error) {
+    await supabase.from('email_send_log').insert({
+      message_id: messageId,
+      template_name: type,
+      recipient_email: email,
+      status: 'failed',
+      error_message: 'Failed to enqueue email',
+    })
+    throw error
+  }
 }
 
 Deno.serve(async (req) => {

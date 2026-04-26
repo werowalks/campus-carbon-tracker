@@ -138,33 +138,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (email: string, password: string, name: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const redirectUrl = `${window.location.origin}/auth/callback`;
-      
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            name: name.trim(),
-          },
+      const { data, error } = await supabase.functions.invoke('register-user', {
+        body: {
+          email: email.trim(),
+          password,
+          name: name.trim(),
         },
       });
 
       if (error) {
         console.error('Registration error:', error);
-        if (error.message.includes('already registered')) {
-          return { success: false, error: 'This email is already registered. Please sign in instead.' };
-        }
         return { success: false, error: error.message };
       }
 
-      // Check if email confirmation is required
-      if (data.user && !data.session) {
-        return { success: true, error: 'Please check your email to confirm your account.' };
+      if (!data?.success) {
+        return { success: false, error: data?.error || 'Registration failed' };
       }
 
-      return { success: true };
+      return { success: true, error: data.message || 'Please check your email to confirm your account.' };
     } catch (error) {
       console.error('Unexpected registration error:', error);
       return { success: false, error: 'An unexpected error occurred' };

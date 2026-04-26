@@ -4,7 +4,7 @@ import { useEnergy } from '@/contexts/EnergyContext';
 import StatCard from '@/components/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Zap, Leaf, TrendingUp, Trophy, Calendar, Clock } from 'lucide-react';
+import { Zap, Leaf, TrendingUp, Trophy, Calendar, Clock, CalendarDays } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { DEVICE_CATEGORIES } from '@/types';
 

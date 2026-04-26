@@ -313,7 +313,7 @@ export default function EnergyLogForm() {
                 </Button>
 
                 <Button type="submit" className="w-full eco-gradient">
-                  Log All Devices
+                  Add All Devices
                 </Button>
               </form>
             </CardContent>

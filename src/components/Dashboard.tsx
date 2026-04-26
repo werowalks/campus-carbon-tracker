@@ -227,6 +227,7 @@ export default function Dashboard() {
           </div>
         </TabsContent>
       </Tabs>
+      )}
 
       {/* Charts Section */}
       <div className="grid gap-6 lg:grid-cols-2">

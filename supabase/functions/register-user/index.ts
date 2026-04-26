@@ -125,12 +125,14 @@ Deno.serve(async (req) => {
         if (resendError) {
           console.error('Signup confirmation resend failed', { message: resendError.message })
         }
+
+        return jsonResponse({
+          success: true,
+          message: 'If this email needs confirmation, please check your inbox.',
+        })
       }
 
-      return jsonResponse({
-        success: true,
-        message: 'If this email needs confirmation, please check your inbox.',
-      })
+      return jsonResponse({ error: error.message || 'Registration failed.' }, 400)
     }
 
     const userId = data?.user?.id

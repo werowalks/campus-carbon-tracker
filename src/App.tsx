@@ -16,6 +16,7 @@ import EnergyLogForm from "./components/EnergyLogForm";
 import AdminPanel from "./components/AdminPanel";
 import Documentation from "./pages/Documentation";
 import Demo from "./pages/Demo";
+import Contact from "./pages/Contact";
 import ResetPassword from "./pages/ResetPassword";
 import AuthCallback from "./pages/AuthCallback";
 
@@ -58,6 +59,7 @@ function AppContent() {
         />
         <Route path="/docs" element={<Documentation />} />
         <Route path="/demo" element={<Demo />} />
+        <Route path="/contact" element={<Contact />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

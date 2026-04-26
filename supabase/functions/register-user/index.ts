@@ -72,7 +72,13 @@ async function enqueueAuthEmail(
   name?: string,
 ) {
   const messageId = crypto.randomUUID()
+  const unsubscribeToken = crypto.randomUUID()
   const { html, text, subject } = renderAuthEmail(type, confirmationUrl, email, name)
+
+  await supabase.from('email_unsubscribe_tokens').insert({
+    email,
+    token: unsubscribeToken,
+  })
 
   await supabase.from('email_send_log').insert({
     message_id: messageId,
@@ -94,6 +100,7 @@ async function enqueueAuthEmail(
       purpose: 'transactional',
       label: type,
       idempotency_key: messageId,
+      unsubscribe_token: unsubscribeToken,
       queued_at: new Date().toISOString(),
     },
   })

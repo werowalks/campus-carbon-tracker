@@ -20,7 +20,7 @@ interface EnergyContextType {
   addLog: (log: Omit<EnergyLog, 'id' | 'carbon_emission' | 'user_id'>) => Promise<void>;
   updateLog: (id: string, updates: Partial<Pick<EnergyLog, 'device_name' | 'category' | 'wattage' | 'duration'>>) => Promise<void>;
   deleteLog: (id: string) => Promise<void>;
-  getStats: (userId?: string) => DashboardStats;
+  getStats: (userId?: string, period?: 'today' | 'week' | 'month' | 'year') => DashboardStats;
   getAllLogs: () => EnergyLog[];
   refreshLogs: () => Promise<void>;
 }

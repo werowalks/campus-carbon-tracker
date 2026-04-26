@@ -64,6 +64,10 @@ export default function Dashboard() {
             <TrendingUp className="w-4 h-4" />
             This Month
           </TabsTrigger>
+          <TabsTrigger value="year" className="gap-2">
+            <CalendarDays className="w-4 h-4" />
+            This Year
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="today" className="space-y-4">

@@ -192,11 +192,22 @@ Deno.serve(async (req) => {
     if (error) {
       console.error('Signup link generation failed', { message: error.message })
       const alreadyRegistered = /already|registered|exists/i.test(error.message)
+
+      if (alreadyRegistered) {
+        const { error: resendError } = await supabase.auth.resend({
+          type: 'signup',
+          email,
+          options: { emailRedirectTo: redirectTo },
+        })
+
+        if (resendError) {
+          console.error('Signup confirmation resend failed', { message: resendError.message })
+        }
+      }
+
       return jsonResponse({
         success: true,
-        message: alreadyRegistered
-          ? 'If this email needs confirmation, please check your inbox.'
-          : 'Please check your email to confirm your account.',
+        message: 'If this email needs confirmation, please check your inbox.',
       })
     }
 

@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Download, Search, Filter, Shield, Trash2, FileSpreadsheet, Calendar, Users, Eye, BarChart3, UserCog, FlaskConical } from 'lucide-react';
+import { Download, Search, Filter, Shield, Trash2, FileSpreadsheet, Calendar, Users, Eye, BarChart3, UserCog, FlaskConical, Mail } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import ScenarioSimulation from './ScenarioSimulation';
@@ -42,6 +42,8 @@ interface SiteVisitStats {
   todayVisits: number;
   weekVisits: number;
   monthVisits: number;
+  contactPageVisits: number;
+  emailClicks: number;
 }
 
 export default function AdminPanel() {
@@ -58,6 +60,8 @@ export default function AdminPanel() {
     todayVisits: 0,
     weekVisits: 0,
     monthVisits: 0,
+    contactPageVisits: 0,
+    emailClicks: 0,
   });
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
   const [deletingUser, setDeletingUser] = useState<string | null>(null);
@@ -122,11 +126,13 @@ export default function AdminPanel() {
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
       // Fetch all visit counts
-      const [totalResult, todayResult, weekResult, monthResult] = await Promise.all([
+      const [totalResult, todayResult, weekResult, monthResult, contactResult, emailClickResult] = await Promise.all([
         supabase.from('site_visits').select('id', { count: 'exact', head: true }),
         supabase.from('site_visits').select('id', { count: 'exact', head: true }).gte('visited_at', todayStart),
         supabase.from('site_visits').select('id', { count: 'exact', head: true }).gte('visited_at', weekStart),
         supabase.from('site_visits').select('id', { count: 'exact', head: true }).gte('visited_at', monthStart),
+        supabase.from('site_visits').select('id', { count: 'exact', head: true }).eq('page_path', '/contact'),
+        supabase.from('site_visits').select('id', { count: 'exact', head: true }).eq('page_path', '/contact/email-click'),
       ]);
 
       setVisitStats({
@@ -134,6 +140,8 @@ export default function AdminPanel() {
         todayVisits: todayResult.count || 0,
         weekVisits: weekResult.count || 0,
         monthVisits: monthResult.count || 0,
+        contactPageVisits: contactResult.count || 0,
+        emailClicks: emailClickResult.count || 0,
       });
     } catch (error) {
       console.error('Error fetching visit stats:', error);
@@ -361,6 +369,34 @@ export default function AdminPanel() {
                 <div className="text-3xl font-bold">{logs.length}</div>
               </div>
               <FileSpreadsheet className="w-10 h-10 text-warning/20" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Contact Page Analytics */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="border-l-4 border-l-info">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Contact Page Views</p>
+                <div className="text-3xl font-bold">{visitStats.contactPageVisits}</div>
+                <p className="text-xs text-muted-foreground mt-1">Total visits to /contact</p>
+              </div>
+              <Eye className="w-10 h-10 text-info/20" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-primary">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Email Link Clicks</p>
+                <div className="text-3xl font-bold">{visitStats.emailClicks}</div>
+                <p className="text-xs text-muted-foreground mt-1">Clicks on the contact email link</p>
+              </div>
+              <Mail className="w-10 h-10 text-primary/20" />
             </div>
           </CardContent>
         </Card>

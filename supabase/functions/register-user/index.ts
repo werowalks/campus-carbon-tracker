@@ -122,9 +122,8 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? Deno.env.get('SUPABASE_PUBLISHABLE_KEY')
 
-    if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
+    if (!supabaseUrl || !supabaseServiceKey) {
       console.error('Missing required environment variables')
       return jsonResponse({ error: 'Server configuration error' }, 500)
     }

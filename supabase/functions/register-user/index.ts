@@ -2,6 +2,7 @@ import * as React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { SignupEmail } from '../_shared/email-templates/signup.tsx'
+import { RecoveryEmail } from '../_shared/email-templates/recovery.tsx'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,6 +36,12 @@ function getRedirectUrl(req: Request): string {
   const origin = req.headers.get('origin')
   const safeOrigin = origin && allowedOrigins.has(origin) ? origin : SITE_URL
   return `${safeOrigin}/auth/callback`
+}
+
+function getResetRedirectUrl(req: Request): string {
+  const origin = req.headers.get('origin')
+  const safeOrigin = origin && allowedOrigins.has(origin) ? origin : SITE_URL
+  return `${safeOrigin}/reset-password`
 }
 
 Deno.serve(async (req) => {

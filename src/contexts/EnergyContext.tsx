@@ -181,6 +181,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     const todayTotals = calculateTotals(todayLogs);
     const weekTotals = calculateTotals(weekLogs);
     const monthTotals = calculateTotals(monthLogs);
+    const yearTotals = calculateTotals(yearLogs);
 
     // Top devices
     const deviceUsage: Record<string, { usage: number; category: string }> = {};

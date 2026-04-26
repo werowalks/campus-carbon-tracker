@@ -56,6 +56,8 @@ export const CATEGORY_WATTAGE: Record<string, number> = {
 export const CAMPUS_DEVICES: CampusDevice[] = [
   // Computing Devices
   { category: "Computing", name: "Laptop", wattage: 65, source: "DOE PH / Manufacturer Adapters (45–90W)" },
+  { category: "Computing", name: "Mobile Phone", wattage: 5, source: "Manufacturer Charging Specs / USB Standards" },
+  { category: "Computing", name: "Nintendo Switch", wattage: 18, source: "Nintendo Official Specs (AC Adapter 15V/2.6A)" },
   { category: "Computing", name: "Desktop Computer", wattage: 250, source: "DOE PH / Meralco Appliance Guide" },
   { category: "Computing", name: "iPad", wattage: 15, source: "DOE PH / USB Charging Standards" },
   { category: "Computing", name: "Tablet", wattage: 15, source: "DOE PH / USB Charging Standards" },
@@ -76,6 +78,8 @@ export const CAMPUS_DEVICES: CampusDevice[] = [
   { category: "Facilities/HVAC", name: "Portable Fan", wattage: 50, source: "DOE PH Energy Efficiency Guide" },
   { category: "Facilities/HVAC", name: "Air Purifier", wattage: 60, source: "DOE PH / Manufacturer Specs" },
   { category: "Facilities/HVAC", name: "Tile Cleaning Machine", wattage: 1200, source: "Meralco Commercial Cleaning Equipment Guide" },
+  { category: "Facilities/HVAC", name: "Air Condition (Window Type)", wattage: 1200, source: "Meralco Appliance Wattage Guide (1.0 HP Window Type)" },
+  { category: "Facilities/HVAC", name: "Air Condition (Split Type)", wattage: 900, source: "Meralco Appliance Wattage Guide (1.0 HP Inverter Split Type)" },
 
   // Printing/Office
   { category: "Printing/Office", name: "POS Machine", wattage: 30, source: "Meralco SME Energy Guide" },
@@ -89,6 +93,7 @@ export const CAMPUS_DEVICES: CampusDevice[] = [
   { category: "AV/Classroom", name: "Speaker", wattage: 60, source: "DOE PH / Meralco Appliance Guide" },
   { category: "AV/Classroom", name: "Sound System", wattage: 300, source: "DOE PH / Meralco Appliance Guide" },
   { category: "AV/Classroom", name: "Television", wattage: 120, source: "Meralco Appliance Wattage Guide" },
+  { category: "AV/Classroom", name: "Ring Light", wattage: 25, source: "Manufacturer Specs (10\" LED Ring Light)" },
 
   // Wearables
   { category: "Wearables", name: "Apple Watch", wattage: 5, source: "Manufacturer Charging Specs" },
@@ -104,6 +109,9 @@ export const CAMPUS_DEVICES: CampusDevice[] = [
 
   // Security/Safety
   { category: "Security/Safety", name: "CCTV Camera", wattage: 15, source: "DOE PH / Security Equipment Specs" },
+  { category: "Security/Safety", name: "Hand-Held Metal Detector", wattage: 2, source: "Manufacturer Specs (9V Battery Operated)" },
+  { category: "Security/Safety", name: "Walkthrough Metal Detector", wattage: 35, source: "Manufacturer Specs (Garrett/CEIA Standards)" },
+  { category: "Security/Safety", name: "X-ray Baggage Inspection System", wattage: 1500, source: "Manufacturer Specs (Smiths/Rapiscan Standards)" },
 
   // Water/Waste
   { category: "Water/Waste", name: "Water Dispenser", wattage: 500, source: "Meralco Appliance Wattage Guide" },

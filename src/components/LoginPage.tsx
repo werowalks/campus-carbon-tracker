@@ -122,12 +122,17 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail.trim(), {
-        redirectTo: `${window.location.origin}/reset-password`,
+      const { data, error } = await supabase.functions.invoke('register-user', {
+        body: {
+          action: 'recovery',
+          email: forgotPasswordEmail.trim(),
+        },
       });
 
       if (error) {
         setErrors({ forgotPassword: error.message });
+      } else if (!data?.success) {
+        setErrors({ forgotPassword: data?.error || 'Unable to send password reset email.' });
       } else {
         setResetEmailSent(true);
         toast.success('Password reset email sent! Check your inbox.');

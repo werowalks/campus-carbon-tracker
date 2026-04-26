@@ -20,7 +20,7 @@ interface EnergyContextType {
   addLog: (log: Omit<EnergyLog, 'id' | 'carbon_emission' | 'user_id'>) => Promise<void>;
   updateLog: (id: string, updates: Partial<Pick<EnergyLog, 'device_name' | 'category' | 'wattage' | 'duration'>>) => Promise<void>;
   deleteLog: (id: string) => Promise<void>;
-  getStats: (userId?: string) => DashboardStats;
+  getStats: (userId?: string, period?: 'today' | 'week' | 'month' | 'year') => DashboardStats;
   getAllLogs: () => EnergyLog[];
   refreshLogs: () => Promise<void>;
 }
@@ -158,7 +158,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     setLogs(prev => prev.filter(log => log.id !== id));
   };
 
-  const getStats = (userId?: string): DashboardStats => {
+  const getStats = (userId?: string, period: 'today' | 'week' | 'month' | 'year' = 'month'): DashboardStats => {
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const weekStart = new Date(todayStart.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -183,9 +183,16 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     const monthTotals = calculateTotals(monthLogs);
     const yearTotals = calculateTotals(yearLogs);
 
+    // Select logs for top devices and category breakdown based on period
+    const periodLogs =
+      period === 'today' ? todayLogs :
+      period === 'week' ? weekLogs :
+      period === 'year' ? yearLogs :
+      monthLogs;
+
     // Top devices
     const deviceUsage: Record<string, { usage: number; category: string }> = {};
-    monthLogs.forEach(log => {
+    periodLogs.forEach(log => {
       if (!deviceUsage[log.device_name]) {
         deviceUsage[log.device_name] = { usage: 0, category: log.category };
       }
@@ -199,7 +206,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
 
     // Category breakdown
     const categoryUsage: Record<string, number> = {};
-    monthLogs.forEach(log => {
+    periodLogs.forEach(log => {
       if (!categoryUsage[log.category]) {
         categoryUsage[log.category] = 0;
       }

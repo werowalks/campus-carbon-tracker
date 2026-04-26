@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnergy } from '@/contexts/EnergyContext';
 import StatCard from '@/components/StatCard';
@@ -22,9 +22,16 @@ const CHART_COLORS = [
 export default function Dashboard() {
   const { user, profile, isAdmin } = useAuth();
   const { getStats } = useEnergy();
-  
+  const [period, setPeriod] = useState<'today' | 'week' | 'month' | 'year'>('today');
+
   // Get user-specific stats for regular users, all stats for admins
-  const stats = getStats(isAdmin ? undefined : user?.id);
+  const stats = getStats(isAdmin ? undefined : user?.id, period);
+
+  const periodLabel =
+    period === 'today' ? 'today' :
+    period === 'week' ? 'this week' :
+    period === 'year' ? 'this year' :
+    'this month';
 
   const pieData = stats.categoryBreakdown.map((item, index) => ({
     name: item.category,
@@ -50,7 +57,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Overview */}
-      <Tabs defaultValue="today" className="space-y-4">
+      <Tabs value={period} onValueChange={(v) => setPeriod(v as typeof period)} className="space-y-4">
         <TabsList>
           <TabsTrigger value="today" className="gap-2">
             <Clock className="w-4 h-4" />
@@ -229,7 +236,7 @@ export default function Dashboard() {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-sm">{device.usage.toFixed(2)} kWh</p>
-                      <p className="text-xs text-muted-foreground">this month</p>
+                      <p className="text-xs text-muted-foreground">{periodLabel}</p>
                     </div>
                   </div>
                 ))

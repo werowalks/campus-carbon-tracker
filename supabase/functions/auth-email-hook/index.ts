@@ -1,14 +1,6 @@
-import * as React from 'npm:react@18.3.1'
-import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { parseEmailWebhookPayload } from 'npm:@lovable.dev/email-js'
 import { WebhookError, verifyWebhookRequest } from 'npm:@lovable.dev/webhooks-js'
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { SignupEmail } from '../_shared/email-templates/signup.tsx'
-import { InviteEmail } from '../_shared/email-templates/invite.tsx'
-import { MagicLinkEmail } from '../_shared/email-templates/magic-link.tsx'
-import { RecoveryEmail } from '../_shared/email-templates/recovery.tsx'
-import { EmailChangeEmail } from '../_shared/email-templates/email-change.tsx'
-import { ReauthenticationEmail } from '../_shared/email-templates/reauthentication.tsx'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,16 +15,6 @@ const EMAIL_SUBJECTS: Record<string, string> = {
   recovery: 'Reset your password',
   email_change: 'Confirm your new email',
   reauthentication: 'Your verification code',
-}
-
-// Template mapping
-const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
-  signup: SignupEmail,
-  invite: InviteEmail,
-  magiclink: MagicLinkEmail,
-  recovery: RecoveryEmail,
-  email_change: EmailChangeEmail,
-  reauthentication: ReauthenticationEmail,
 }
 
 // Configuration
@@ -79,6 +61,28 @@ const SAMPLE_DATA: Record<string, object> = {
   },
 }
 
+function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+}
+
+function renderAuthEmail(type: string, props: Record<string, unknown>) {
+  const title = EMAIL_SUBJECTS[type] || 'Notification'
+  const confirmationUrl = escapeHtml(props.confirmationUrl)
+  const recipient = escapeHtml(props.recipient)
+  const token = escapeHtml(props.token)
+  const actionLabel = type === 'recovery' ? 'Reset Password' : type === 'magiclink' ? 'Log In' : type === 'invite' ? 'Accept Invitation' : 'Verify Email'
+  const bodyText = type === 'reauthentication'
+    ? `Use this verification code to confirm your identity: ${token}`
+    : `Please use the secure link below to continue with ${escapeHtml(props.siteName || SITE_NAME)}${recipient ? ` for ${recipient}` : ''}.`
+  const html = `<!doctype html><html><body style="margin:0;background:#ffffff;font-family:Arial,sans-serif;color:#1f2937"><div style="max-width:560px;margin:0 auto;padding:32px 24px"><h1 style="margin:0 0 16px;color:#1f2937;font-size:24px">${escapeHtml(title)}</h1><p style="font-size:15px;line-height:1.6;color:#4b5563">${bodyText}</p>${type === 'reauthentication' ? `<p style="font-size:28px;font-weight:700;letter-spacing:4px">${token}</p>` : `<a href="${confirmationUrl}" style="display:inline-block;background:#2f6b4f;color:#ffffff;text-decoration:none;border-radius:8px;padding:12px 20px;font-weight:700">${actionLabel}</a>`}<p style="margin-top:28px;font-size:12px;line-height:1.5;color:#6b7280">If you didn't request this email, you can safely ignore it.</p></div></body></html>`
+  const text = type === 'reauthentication' ? `${title}\n\n${bodyText}` : `${title}\n\n${bodyText}\n\n${confirmationUrl}`
+  return { html, text }
+}
+
 // Preview endpoint handler - returns rendered HTML without sending email
 async function handlePreview(req: Request): Promise<Response> {
   const previewCorsHeaders = {
@@ -111,9 +115,7 @@ async function handlePreview(req: Request): Promise<Response> {
     })
   }
 
-  const EmailTemplate = EMAIL_TEMPLATES[type]
-
-  if (!EmailTemplate) {
+  if (!EMAIL_SUBJECTS[type]) {
     return new Response(JSON.stringify({ error: `Unknown email type: ${type}` }), {
       status: 400,
       headers: { ...previewCorsHeaders, 'Content-Type': 'application/json' },
@@ -121,7 +123,7 @@ async function handlePreview(req: Request): Promise<Response> {
   }
 
   const sampleData = SAMPLE_DATA[type] || {}
-  const html = await renderAsync(React.createElement(EmailTemplate, sampleData))
+  const { html } = renderAuthEmail(type, sampleData as Record<string, unknown>)
 
   return new Response(html, {
     status: 200,
@@ -208,8 +210,7 @@ async function handleWebhook(req: Request): Promise<Response> {
   const emailType = payload.data.action_type
   console.log('Received auth event', { emailType, email: payload.data.email, run_id })
 
-  const EmailTemplate = EMAIL_TEMPLATES[emailType]
-  if (!EmailTemplate) {
+  if (!EMAIL_SUBJECTS[emailType]) {
     console.error('Unknown email type', { emailType, run_id })
     return new Response(
       JSON.stringify({ error: `Unknown email type: ${emailType}` }),
@@ -228,11 +229,8 @@ async function handleWebhook(req: Request): Promise<Response> {
     newEmail: payload.data.new_email,
   }
 
-  // Render React Email to HTML and plain text
-  const html = await renderAsync(React.createElement(EmailTemplate, templateProps))
-  const text = await renderAsync(React.createElement(EmailTemplate, templateProps), {
-    plainText: true,
-  })
+  // Render compact, dependency-light HTML and plain text for fast webhook responses.
+  const { html, text } = renderAuthEmail(emailType, templateProps)
 
   // Enqueue email for async processing by the dispatcher (process-email-queue).
   const supabase = createClient(

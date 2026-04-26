@@ -1,8 +1,4 @@
-import * as React from 'npm:react@18.3.1'
-import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { SignupEmail } from '../_shared/email-templates/signup.tsx'
-import { RecoveryEmail } from '../_shared/email-templates/recovery.tsx'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,30 +7,14 @@ const corsHeaders = {
 
 const SITE_NAME = 'WattLog'
 const SITE_URL = 'https://campuswattwatch.com'
-const SENDER_DOMAIN = 'notify.campuswattwatch.com'
-const FROM_DOMAIN = 'campuswattwatch.com'
 
+type AuthEmailType = 'signup' | 'recovery'
 const allowedOrigins = new Set([
   'https://campuswattwatch.com',
   'https://www.campuswattwatch.com',
   'https://campus-green-view.lovable.app',
   'http://localhost:5173',
 ])
-
-const emailTemplates = {
-  signup: SignupEmail,
-  recovery: RecoveryEmail,
-} as const
-
-const emailSubjects = {
-  signup: 'Confirm your email - WattLog',
-  recovery: 'Reset your password - WattLog',
-} as const
-
-const emailLabels = {
-  signup: 'signup',
-  recovery: 'recovery',
-} as const
 
 function jsonResponse(body: Record<string, unknown>, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -59,61 +39,31 @@ function getResetRedirectUrl(req: Request): string {
   return `${safeOrigin}/reset-password`
 }
 
-async function enqueueAuthEmail(
+async function sendAuthEmail(
   supabase: any,
-  type: keyof typeof emailTemplates,
   email: string,
-  confirmationUrl: string,
+  type: AuthEmailType,
+  redirectTo: string,
+  password?: string,
+  name?: string,
 ) {
-  const EmailTemplate = emailTemplates[type]
-  const templateProps = {
-    siteName: SITE_NAME,
-    siteUrl: SITE_URL,
-    recipient: email,
-    confirmationUrl,
-  }
-
-  const html = await renderAsync(React.createElement(EmailTemplate, templateProps))
-  const text = await renderAsync(React.createElement(EmailTemplate, templateProps), {
-    plainText: true,
-  })
-  const messageId = crypto.randomUUID()
-  const label = emailLabels[type]
-
-  await supabase.from('email_send_log').insert({
-    message_id: messageId,
-    template_name: label,
-    recipient_email: email,
-    status: 'pending',
-  })
-
-  const { error } = await supabase.rpc('enqueue_email', {
-    queue_name: 'auth_emails',
-    payload: {
-      message_id: messageId,
-      to: email,
-      from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
-      sender_domain: SENDER_DOMAIN,
-      subject: emailSubjects[type],
-      html,
-      text,
-      purpose: 'auth',
-      label,
-      idempotency_key: `${label}-${messageId}`,
-      queued_at: new Date().toISOString(),
-    },
-  })
-
-  if (error) {
-    await supabase.from('email_send_log').insert({
-      message_id: messageId,
-      template_name: label,
-      recipient_email: email,
-      status: 'failed',
-      error_message: 'Failed to enqueue auth email',
+  if (type === 'signup') {
+    return await supabase.auth.admin.generateLink({
+      type: 'signup',
+      email,
+      password,
+      options: {
+        redirectTo,
+        data: { name },
+      },
     })
-    throw error
   }
+
+  return await supabase.auth.admin.generateLink({
+    type: 'recovery',
+    email,
+    options: { redirectTo },
+  })
 }
 
 Deno.serve(async (req) => {
@@ -128,8 +78,9 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? Deno.env.get('SUPABASE_PUBLISHABLE_KEY')
 
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
       console.error('Missing required environment variables')
       return jsonResponse({ error: 'Server configuration error' }, 500)
     }
@@ -145,16 +96,14 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: 'Please enter a valid email address.' }, 400)
       }
 
-      const supabase = createClient(supabaseUrl, supabaseServiceKey) as any
-      const { data, error } = await supabase.auth.admin.generateLink({
-        type: 'recovery',
-        email,
-        options: { redirectTo: getResetRedirectUrl(req) },
+      const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      }) as any
+      const { error } = await authClient.auth.resetPasswordForEmail(email, {
+        redirectTo: getResetRedirectUrl(req),
       })
 
-      if (!error && data?.properties?.action_link) {
-        await enqueueAuthEmail(supabase, 'recovery', email, data.properties.action_link)
-      } else if (error) {
+      if (error) {
         console.error('Recovery link generation failed', { message: error.message })
       }
 
@@ -177,14 +126,16 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey) as any
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    }) as any
     const redirectTo = getRedirectUrl(req)
 
-    const { data, error } = await supabase.auth.admin.generateLink({
-      type: 'signup',
+    const { data, error } = await authClient.auth.signUp({
       email,
       password,
       options: {
-        redirectTo,
+        emailRedirectTo: redirectTo,
         data: { name },
       },
     })
@@ -194,7 +145,7 @@ Deno.serve(async (req) => {
       const alreadyRegistered = /already|registered|exists/i.test(error.message)
 
       if (alreadyRegistered) {
-        const { error: resendError } = await supabase.auth.resend({
+        const { error: resendError } = await authClient.auth.resend({
           type: 'signup',
           email,
           options: { emailRedirectTo: redirectTo },
@@ -203,18 +154,14 @@ Deno.serve(async (req) => {
         if (resendError) {
           console.error('Signup confirmation resend failed', { message: resendError.message })
         }
+
+        return jsonResponse({
+          success: true,
+          message: 'If this email needs confirmation, please check your inbox.',
+        })
       }
 
-      return jsonResponse({
-        success: true,
-        message: 'If this email needs confirmation, please check your inbox.',
-      })
-    }
-
-    const confirmationUrl = data?.properties?.action_link
-    if (!confirmationUrl) {
-      console.error('Signup link generation returned no action link')
-      return jsonResponse({ error: 'Unable to create confirmation link.' }, 500)
+      return jsonResponse({ error: error.message || 'Registration failed.' }, 400)
     }
 
     const userId = data?.user?.id
@@ -239,13 +186,6 @@ Deno.serve(async (req) => {
       if (!existingRole) {
         await supabase.from('user_roles').insert({ user_id: userId, role: 'user' })
       }
-    }
-
-    try {
-      await enqueueAuthEmail(supabase, 'signup', email, confirmationUrl)
-    } catch (enqueueError) {
-      console.error('Failed to enqueue signup confirmation', { error: enqueueError })
-      return jsonResponse({ error: 'Unable to send confirmation email.' }, 500)
     }
 
     return jsonResponse({

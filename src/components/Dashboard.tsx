@@ -35,12 +35,14 @@ export default function Dashboard() {
     period === 'year' ? 'this year' :
     'this month';
 
-  const pieData = stats.categoryBreakdown.map((item, index) => ({
-    name: item.category,
-    value: item.percentage,
-    energy: item.energy,
-    color: CHART_COLORS[index % CHART_COLORS.length],
-  }));
+  const pieData = [...stats.categoryBreakdown]
+    .sort((a, b) => b.energy - a.energy)
+    .map((item, index) => ({
+      name: item.category,
+      value: item.percentage,
+      energy: item.energy,
+      color: CHART_COLORS[index % CHART_COLORS.length],
+    }));
 
   const getCategoryIcon = (categoryId: string) => {
     return DEVICE_CATEGORIES.find(c => c.name === categoryId)?.icon || 'plug';

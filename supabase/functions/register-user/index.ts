@@ -206,53 +206,34 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'Unable to create confirmation link.' }, 500)
     }
 
-    const templateProps = {
-      siteName: SITE_NAME,
-      siteUrl: SITE_URL,
-      recipient: email,
-      confirmationUrl,
+    const userId = data?.user?.id
+    if (userId) {
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle()
+
+      if (!existingProfile) {
+        await supabase.from('profiles').insert({ user_id: userId, name, email })
+      }
+
+      const { data: existingRole } = await supabase
+        .from('user_roles')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('role', 'user')
+        .maybeSingle()
+
+      if (!existingRole) {
+        await supabase.from('user_roles').insert({ user_id: userId, role: 'user' })
+      }
     }
 
-    const html = await renderAsync(React.createElement(SignupEmail, templateProps))
-    const text = await renderAsync(React.createElement(SignupEmail, templateProps), {
-      plainText: true,
-    })
-
-    const messageId = crypto.randomUUID()
-
-    await supabase.from('email_send_log').insert({
-      message_id: messageId,
-      template_name: 'signup',
-      recipient_email: email,
-      status: 'pending',
-    })
-
-    const { error: enqueueError } = await supabase.rpc('enqueue_email', {
-      queue_name: 'auth_emails',
-      payload: {
-        message_id: messageId,
-        to: email,
-        from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
-        sender_domain: SENDER_DOMAIN,
-        subject: 'Confirm your email - WattLog',
-        html,
-        text,
-        purpose: 'transactional',
-        label: 'signup',
-        idempotency_key: `signup-${messageId}`,
-        queued_at: new Date().toISOString(),
-      },
-    })
-
-    if (enqueueError) {
+    try {
+      await enqueueAuthEmail(supabase, 'signup', email, confirmationUrl)
+    } catch (enqueueError) {
       console.error('Failed to enqueue signup confirmation', { error: enqueueError })
-      await supabase.from('email_send_log').insert({
-        message_id: messageId,
-        template_name: 'signup',
-        recipient_email: email,
-        status: 'failed',
-        error_message: 'Failed to enqueue confirmation email',
-      })
       return jsonResponse({ error: 'Unable to send confirmation email.' }, 500)
     }
 

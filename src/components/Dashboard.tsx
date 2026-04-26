@@ -294,15 +294,17 @@ export default function Dashboard() {
                     />
                     <YAxis
                       tick={{ fontSize: 11 }}
-                      label={{ value: 'kWh', angle: -90, position: 'insideLeft', style: { fontSize: 11 } }}
+                      domain={[0, 100]}
+                      tickFormatter={(v: number) => `${v}%`}
+                      label={{ value: '% of total', angle: -90, position: 'insideLeft', style: { fontSize: 11 } }}
                     />
                     <Tooltip
                       formatter={(value: number, _name: string, props: any) => [
-                        `${value.toFixed(2)} kWh (${props.payload.value.toFixed(1)}%)`,
+                        `${value.toFixed(1)}% (${props.payload.energy.toFixed(2)} kWh)`,
                         props.payload.name,
                       ]}
                     />
-                    <Bar dataKey="energy" radius={[6, 6, 0, 0]} label={{ position: 'top', fontSize: 10, formatter: (v: number) => v.toFixed(2) }}>
+                    <Bar dataKey="value" radius={[6, 6, 0, 0]} label={{ position: 'top', fontSize: 10, formatter: (v: number) => `${v.toFixed(1)}%` }}>
                       {pieData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}

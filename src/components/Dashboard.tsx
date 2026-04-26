@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnergy } from '@/contexts/EnergyContext';
 import StatCard from '@/components/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Zap, Leaf, TrendingUp, Trophy, Calendar, Clock, CalendarDays } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { DEVICE_CATEGORIES } from '@/types';
@@ -21,13 +32,19 @@ const CHART_COLORS = [
 ];
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { user, profile, isAdmin } = useAuth();
-  const { getStats } = useEnergy();
+  const { getStats, logs, isLoading } = useEnergy();
   const [period, setPeriod] = useState<'today' | 'week' | 'month' | 'year'>('today');
   const [topSort, setTopSort] = useState<'energy' | 'carbon'>('energy');
 
   // Get user-specific stats for regular users, all stats for admins
   const stats = getStats(isAdmin ? undefined : user?.id, period);
+
+  // Empty state: regular user with no logs yet
+  const userLogs = isAdmin ? logs : logs.filter(l => l.user_id === user?.id);
+  const isEmpty = !isLoading && !isAdmin && userLogs.length === 0;
+  const [showEmptyDialog, setShowEmptyDialog] = useState(true);
 
   const periodLabel =
     period === 'today' ? 'today' :
@@ -61,6 +78,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Overview */}
+      {!isEmpty && (
       <Tabs value={period} onValueChange={(v) => setPeriod(v as typeof period)} className="space-y-4">
         <TabsList>
           <TabsTrigger value="today" className="gap-2">
@@ -209,6 +227,7 @@ export default function Dashboard() {
           </div>
         </TabsContent>
       </Tabs>
+      )}
 
       {/* Charts Section */}
       <div className="grid gap-6 lg:grid-cols-2">
@@ -353,6 +372,24 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* First-time empty state dialog */}
+      <AlertDialog open={isEmpty && showEmptyDialog} onOpenChange={setShowEmptyDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>No device has been added</AlertDialogTitle>
+            <AlertDialogDescription>
+              You haven't logged any energy usage yet. Would you like to add your first device now?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Not now</AlertDialogCancel>
+            <AlertDialogAction onClick={() => navigate('/log')}>
+              Yes, log energy
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

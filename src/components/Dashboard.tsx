@@ -24,6 +24,7 @@ export default function Dashboard() {
   const { user, profile, isAdmin } = useAuth();
   const { getStats } = useEnergy();
   const [period, setPeriod] = useState<'today' | 'week' | 'month' | 'year'>('today');
+  const [topSort, setTopSort] = useState<'energy' | 'carbon'>('energy');
 
   // Get user-specific stats for regular users, all stats for admins
   const stats = getStats(isAdmin ? undefined : user?.id, period);
@@ -212,15 +213,29 @@ export default function Dashboard() {
         {/* Top 10 Devices */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-warning" />
-              Top 10 Energy Consuming Devices
-            </CardTitle>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <CardTitle className="flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-warning" />
+                Top 10 {topSort === 'energy' ? 'Energy' : 'Carbon'} Consuming Devices
+              </CardTitle>
+              <Select value={topSort} onValueChange={(v) => setTopSort(v as 'energy' | 'carbon')}>
+                <SelectTrigger className="w-[160px] h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="energy">Energy (kWh)</SelectItem>
+                  <SelectItem value="carbon">Carbon (kg CO₂)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {stats.topDevices.length > 0 ? (
-                stats.topDevices.map((device, index) => (
+                [...stats.topDevices]
+                  .sort((a, b) => topSort === 'energy' ? b.usage - a.usage : b.carbon - a.carbon)
+                  .slice(0, 10)
+                  .map((device, index) => (
                   <div key={device.name} className="flex items-center gap-4">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                       index === 0 ? 'bg-warning/20 text-warning' :
@@ -236,7 +251,11 @@ export default function Dashboard() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-sm">{device.usage.toFixed(2)} kWh</p>
+                      <p className="font-semibold text-sm">
+                        {topSort === 'energy'
+                          ? `${device.usage.toFixed(2)} kWh`
+                          : `${device.carbon.toFixed(2)} kg CO₂`}
+                      </p>
                       <p className="text-xs text-muted-foreground">{periodLabel}</p>
                     </div>
                   </div>

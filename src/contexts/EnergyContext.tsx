@@ -158,7 +158,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     setLogs(prev => prev.filter(log => log.id !== id));
   };
 
-  const getStats = (userId?: string): DashboardStats => {
+  const getStats = (userId?: string, period: 'today' | 'week' | 'month' | 'year' = 'month'): DashboardStats => {
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const weekStart = new Date(todayStart.getTime() - 7 * 24 * 60 * 60 * 1000);

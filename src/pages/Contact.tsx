@@ -2,8 +2,25 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Leaf, Mail, ArrowLeft } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Contact() {
+  const trackEmailClick = async () => {
+    try {
+      let visitorId = sessionStorage.getItem('visitor_id');
+      if (!visitorId) {
+        visitorId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        sessionStorage.setItem('visitor_id', visitorId);
+      }
+      await supabase.from('site_visits').insert({
+        visitor_id: visitorId,
+        page_path: '/contact/email-click',
+        user_agent: navigator.userAgent.substring(0, 500),
+      });
+    } catch (error) {
+      console.debug('Email click tracking failed:', error);
+    }
+  };
   return (
     <div className="min-h-screen hero-gradient">
       {/* Header */}
@@ -42,6 +59,7 @@ export default function Contact() {
             <p className="text-sm text-muted-foreground mb-2">Email us at</p>
             <a
               href="mailto:campuswattwatch@gmail.com"
+              onClick={trackEmailClick}
               className="text-xl md:text-2xl font-display font-semibold text-primary hover:underline break-all"
             >
               campuswattwatch@gmail.com
@@ -49,7 +67,7 @@ export default function Contact() {
           </div>
 
           <div className="mt-10">
-            <a href="mailto:campuswattwatch@gmail.com">
+            <a href="mailto:campuswattwatch@gmail.com" onClick={trackEmailClick}>
               <Button size="lg" className="eco-gradient text-lg px-8">
                 <Mail className="w-5 h-5 mr-2" />
                 Send us an Email

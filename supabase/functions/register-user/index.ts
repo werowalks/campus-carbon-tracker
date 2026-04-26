@@ -140,15 +140,17 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: 'Please enter a valid email address.' }, 400)
       }
 
-      const authClient = createClient(supabaseUrl, supabaseAnonKey, {
-        auth: { persistSession: false, autoRefreshToken: false },
-      }) as any
-      const { error } = await authClient.auth.resetPasswordForEmail(email, {
-        redirectTo: getResetRedirectUrl(req),
+      const supabase = createClient(supabaseUrl, supabaseServiceKey) as any
+      const { data, error } = await supabase.auth.admin.generateLink({
+        type: 'recovery',
+        email,
+        options: { redirectTo: getResetRedirectUrl(req) },
       })
 
       if (error) {
         console.error('Recovery link generation failed', { message: error.message })
+      } else if (data?.properties?.action_link) {
+        await enqueueAuthEmail(supabase, 'recovery', email, data.properties.action_link)
       }
 
       return jsonResponse({
@@ -170,16 +172,14 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey) as any
-    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    }) as any
     const redirectTo = getRedirectUrl(req)
 
-    const { data, error } = await authClient.auth.signUp({
+    const { data, error } = await supabase.auth.admin.generateLink({
+      type: 'signup',
       email,
       password,
       options: {
-        emailRedirectTo: redirectTo,
+        redirectTo,
         data: { name },
       },
     })
@@ -189,14 +189,17 @@ Deno.serve(async (req) => {
       const alreadyRegistered = /already|registered|exists/i.test(error.message)
 
       if (alreadyRegistered) {
-        const { error: resendError } = await authClient.auth.resend({
+        const { data: resendData, error: resendError } = await supabase.auth.admin.generateLink({
           type: 'signup',
           email,
-          options: { emailRedirectTo: redirectTo },
+          password,
+          options: { redirectTo, data: { name } },
         })
 
         if (resendError) {
           console.error('Signup confirmation resend failed', { message: resendError.message })
+        } else if (resendData?.properties?.action_link) {
+          await enqueueAuthEmail(supabase, 'signup', email, resendData.properties.action_link, name)
         }
 
         return jsonResponse({
@@ -206,6 +209,10 @@ Deno.serve(async (req) => {
       }
 
       return jsonResponse({ error: error.message || 'Registration failed.' }, 400)
+    }
+
+    if (data?.properties?.action_link) {
+      await enqueueAuthEmail(supabase, 'signup', email, data.properties.action_link, name)
     }
 
     const userId = data?.user?.id

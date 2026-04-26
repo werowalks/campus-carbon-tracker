@@ -229,11 +229,8 @@ async function handleWebhook(req: Request): Promise<Response> {
     newEmail: payload.data.new_email,
   }
 
-  // Render React Email to HTML and plain text
-  const html = await renderAsync(React.createElement(EmailTemplate, templateProps))
-  const text = await renderAsync(React.createElement(EmailTemplate, templateProps), {
-    plainText: true,
-  })
+  // Render compact, dependency-light HTML and plain text for fast webhook responses.
+  const { html, text } = renderAuthEmail(emailType, templateProps)
 
   // Enqueue email for async processing by the dispatcher (process-email-queue).
   const supabase = createClient(

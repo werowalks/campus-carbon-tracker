@@ -480,32 +480,53 @@ export default function AdminPanel() {
       </div>
 
       {/* Contact Page Analytics */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="border-l-4 border-l-info">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-primary" />
               <div>
-                <p className="text-sm text-muted-foreground">Contact Page Views</p>
-                <div className="text-3xl font-bold">{visitStats.contactPageVisits}</div>
-                <p className="text-xs text-muted-foreground mt-1">Total visits to /contact</p>
+                <CardTitle>Contact Page Analytics</CardTitle>
+                <CardDescription>Track engagement on the /contact page</CardDescription>
               </div>
-              <Eye className="w-10 h-10 text-info/20" />
             </div>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-primary">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Email Link Clicks</p>
-                <div className="text-3xl font-bold">{visitStats.emailClicks}</div>
-                <p className="text-xs text-muted-foreground mt-1">Clicks on the contact email link</p>
+            <div className="flex gap-2">
+              <Button onClick={exportContactAnalyticsCSV} variant="outline" size="sm" className="gap-2">
+                <Download className="w-4 h-4" />
+                CSV
+              </Button>
+              <Button onClick={exportContactAnalyticsExcel} variant="outline" size="sm" className="gap-2">
+                <FileSpreadsheet className="w-4 h-4" />
+                Excel
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="p-4 rounded-lg border-l-4 border-l-info bg-muted/30">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Contact Page Views</p>
+                  <div className="text-3xl font-bold">{visitStats.contactPageVisits}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Total visits to /contact</p>
+                </div>
+                <Eye className="w-10 h-10 text-info/20" />
               </div>
-              <Mail className="w-10 h-10 text-primary/20" />
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="p-4 rounded-lg border-l-4 border-l-primary bg-muted/30">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Email Link Clicks</p>
+                  <div className="text-3xl font-bold">{visitStats.emailClicks}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Clicks on the contact email link</p>
+                </div>
+                <Mail className="w-10 h-10 text-primary/20" />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Tabs for different sections */}
       <Tabs defaultValue="members" className="space-y-4">

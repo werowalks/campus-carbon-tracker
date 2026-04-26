@@ -135,9 +135,34 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => null)
+    const action = body?.action === 'recovery' ? 'recovery' : 'signup'
     const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : ''
     const password = typeof body?.password === 'string' ? body.password : ''
     const name = typeof body?.name === 'string' ? body.name.trim() : ''
+
+    if (action === 'recovery') {
+      if (!isValidEmail(email)) {
+        return jsonResponse({ error: 'Please enter a valid email address.' }, 400)
+      }
+
+      const supabase = createClient(supabaseUrl, supabaseServiceKey) as any
+      const { data, error } = await supabase.auth.admin.generateLink({
+        type: 'recovery',
+        email,
+        options: { redirectTo: getResetRedirectUrl(req) },
+      })
+
+      if (!error && data?.properties?.action_link) {
+        await enqueueAuthEmail(supabase, 'recovery', email, data.properties.action_link)
+      } else if (error) {
+        console.error('Recovery link generation failed', { message: error.message })
+      }
+
+      return jsonResponse({
+        success: true,
+        message: 'If an account exists for this email, a password reset link has been sent.',
+      })
+    }
 
     if (!name || name.length < 2 || name.length > 120) {
       return jsonResponse({ error: 'Name must be between 2 and 120 characters.' }, 400)

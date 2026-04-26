@@ -372,6 +372,24 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* First-time empty state dialog */}
+      <AlertDialog open={isEmpty && showEmptyDialog} onOpenChange={setShowEmptyDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>No device has been added</AlertDialogTitle>
+            <AlertDialogDescription>
+              You haven't logged any energy usage yet. Would you like to add your first device now?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Not now</AlertDialogCancel>
+            <AlertDialogAction onClick={() => navigate('/log')}>
+              Yes, log energy
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

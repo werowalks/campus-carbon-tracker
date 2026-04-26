@@ -54,10 +54,11 @@ export default function About() {
             <span className="block text-primary">Energy Awareness</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            WattLog is a Sustainable Campus Initiative developed as a capstone project
-            for Lyceum of the Philippines University – Manila. It helps universities
-            measure, visualize, and reduce their electrical consumption and carbon
-            footprint through evidence-based logging and analytics.
+            WattLog is a Sustainable Campus Initiative developed to help universities
+            and campuses generate real-time data on their energy consumption. By
+            making electricity usage and carbon emissions visible as they happen,
+            the platform empowers institutions to measure, understand, and reduce
+            their environmental footprint through evidence-based insights.
           </p>
         </section>
 

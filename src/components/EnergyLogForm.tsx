@@ -55,22 +55,27 @@ export default function EnergyLogForm() {
     setDevices(devices.map(d => {
       if (d.id === id) {
         const updated = { ...d, [field]: value };
-        
-        // Auto-fill wattage when category is selected
-        if (field === 'category') {
-          updated.wattage = (CATEGORY_WATTAGE[value] || 100).toString();
-          // Clear device name when category changes
-          updated.deviceName = '';
-        }
-        
-        // Auto-fill wattage when device is selected
+
+        // Auto-fill category and wattage when device is selected
         if (field === 'deviceName') {
-          const selectedDevice = getDevicesByCategory(d.category).find(dev => dev.name === value);
+          const selectedDevice = CAMPUS_DEVICES.find(dev => dev.name === value);
           if (selectedDevice) {
+            updated.category = selectedDevice.category;
             updated.wattage = selectedDevice.wattage.toString();
           }
         }
-        
+
+        // Auto-fill wattage when category is manually changed; clear device if it no longer matches
+        if (field === 'category') {
+          const stillValid = CAMPUS_DEVICES.find(
+            dev => dev.name === d.deviceName && dev.category === value
+          );
+          if (!stillValid) {
+            updated.deviceName = '';
+            updated.wattage = (CATEGORY_WATTAGE[value] || 100).toString();
+          }
+        }
+
         return updated;
       }
       return d;

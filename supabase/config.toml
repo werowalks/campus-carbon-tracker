@@ -1,18 +1,20 @@
 project_id = "mypjtbbwhyztnuhuczei"
 
-[auth.email]
-# Custom email templates with dark mode support
+[auth]
+  [auth.email]
+    [auth.email.template]
+      [auth.email.template.confirmation]
+        content_path = "./templates/confirmation.html"
+        subject = "Confirm your email - CarbonTrack"
+      [auth.email.template.magic_link]
+        content_path = "./templates/magic_link.html"
+        subject = "Your login link - CarbonTrack"
+      [auth.email.template.recovery]
+        content_path = "./templates/recovery.html"
+        subject = "Reset your password - CarbonTrack"
 
-[auth.email.template.confirmation]
-subject = "Confirm your email - CarbonTrack"
-content_path = "./templates/confirmation.html"
-
-[auth.email.template.recovery]
-subject = "Reset your password - CarbonTrack"
-content_path = "./templates/recovery.html"
-
-[auth.email.template.magic_link]
-subject = "Your login link - CarbonTrack"
-content_path = "./templates/magic_link.html"
-[functions.process-email-queue]
-verify_jwt = true
+[functions]
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.process-email-queue]
+    verify_jwt = true

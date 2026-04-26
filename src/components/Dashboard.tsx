@@ -261,29 +261,31 @@ export default function Dashboard() {
             {pieData.length > 0 ? (
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={2}
-                      dataKey="value"
-                      label={({ name, value }) => `${value.toFixed(0)}%`}
-                      labelLine={false}
-                    >
+                  <BarChart data={pieData} margin={{ top: 20, right: 16, left: 0, bottom: 8 }}>
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fontSize: 11 }}
+                      interval={0}
+                      angle={-20}
+                      textAnchor="end"
+                      height={60}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11 }}
+                      label={{ value: 'kWh', angle: -90, position: 'insideLeft', style: { fontSize: 11 } }}
+                    />
+                    <Tooltip
+                      formatter={(value: number, _name: string, props: any) => [
+                        `${value.toFixed(2)} kWh (${props.payload.value.toFixed(1)}%)`,
+                        props.payload.name,
+                      ]}
+                    />
+                    <Bar dataKey="energy" radius={[6, 6, 0, 0]} label={{ position: 'top', fontSize: 10, formatter: (v: number) => v.toFixed(2) }}>
                       {pieData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
-                    </Pie>
-                    <Tooltip 
-                      formatter={(value: number, name: string, props: any) => [
-                        `${props.payload.energy.toFixed(2)} kWh (${value.toFixed(1)}%)`,
-                        props.payload.name
-                      ]}
-                    />
-                  </PieChart>
+                    </Bar>
+                  </BarChart>
                 </ResponsiveContainer>
               </div>
             ) : (

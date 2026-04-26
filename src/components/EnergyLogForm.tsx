@@ -173,8 +173,6 @@ export default function EnergyLogForm() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 {devices.map((device, index) => {
-                  const availableDevices = device.category ? getDevicesForCategory(device.category) : [];
-                  
                   return (
                     <div key={device.id} className="p-4 border rounded-lg space-y-4 relative">
                       {devices.length > 1 && (
@@ -198,13 +196,23 @@ export default function EnergyLogForm() {
 
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
+                          <Label>Device *</Label>
+                          <DeviceCombobox
+                            devices={CAMPUS_DEVICES}
+                            value={device.deviceName}
+                            onValueChange={(value) => updateDevice(device.id, 'deviceName', value)}
+                            placeholder="Search devices..."
+                          />
+                        </div>
+
+                        <div className="space-y-2">
                           <Label>Category *</Label>
                           <Select
                             value={device.category}
                             onValueChange={(value) => updateDevice(device.id, 'category', value)}
                           >
                             <SelectTrigger className="bg-popover">
-                              <SelectValue placeholder="Select category" />
+                              <SelectValue placeholder="Auto-filled from device" />
                             </SelectTrigger>
                             <SelectContent className="bg-popover z-50">
                               {CAMPUS_DEVICE_CATEGORIES.map((cat) => (
@@ -214,17 +222,6 @@ export default function EnergyLogForm() {
                               ))}
                             </SelectContent>
                           </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label>Device *</Label>
-                          <DeviceCombobox
-                            devices={availableDevices}
-                            value={device.deviceName}
-                            onValueChange={(value) => updateDevice(device.id, 'deviceName', value)}
-                            disabled={!device.category}
-                            placeholder={device.category ? "Search devices..." : "Select category first"}
-                          />
                         </div>
 
                         <div className="space-y-2">

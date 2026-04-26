@@ -78,6 +78,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Overview */}
+      {!isEmpty && (
       <Tabs value={period} onValueChange={(v) => setPeriod(v as typeof period)} className="space-y-4">
         <TabsList>
           <TabsTrigger value="today" className="gap-2">

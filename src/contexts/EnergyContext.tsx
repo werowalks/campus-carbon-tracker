@@ -163,6 +163,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const weekStart = new Date(todayStart.getTime() - 7 * 24 * 60 * 60 * 1000);
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const yearStart = new Date(now.getFullYear(), 0, 1);
 
     // Filter logs by user if specified, otherwise use all (for admin view)
     const filteredLogs = userId ? logs.filter(log => log.user_id === userId) : logs;
@@ -170,6 +171,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     const todayLogs = filteredLogs.filter(log => new Date(log.timestamp) >= todayStart);
     const weekLogs = filteredLogs.filter(log => new Date(log.timestamp) >= weekStart);
     const monthLogs = filteredLogs.filter(log => new Date(log.timestamp) >= monthStart);
+    const yearLogs = filteredLogs.filter(log => new Date(log.timestamp) >= yearStart);
 
     const calculateTotals = (logList: EnergyLog[]) => ({
       energy: logList.reduce((sum, log) => sum + calculateEnergyKWh(log.wattage, log.duration), 0),
@@ -179,6 +181,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     const todayTotals = calculateTotals(todayLogs);
     const weekTotals = calculateTotals(weekLogs);
     const monthTotals = calculateTotals(monthLogs);
+    const yearTotals = calculateTotals(yearLogs);
 
     // Top devices
     const deviceUsage: Record<string, { usage: number; category: string }> = {};
@@ -217,6 +220,8 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
       totalCarbonWeek: weekTotals.carbon,
       totalEnergyMonth: monthTotals.energy,
       totalCarbonMonth: monthTotals.carbon,
+      totalEnergyYear: yearTotals.energy,
+      totalCarbonYear: yearTotals.carbon,
       topDevices,
       categoryBreakdown,
     };

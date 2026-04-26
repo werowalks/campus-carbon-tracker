@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Leaf, Zap, BarChart3, Download, ArrowRight, Building2 } from 'lucide-react';
-import ContactFormDialog from '@/components/ContactFormDialog';
+
 
 export default function Index() {
   return (
@@ -101,7 +101,9 @@ export default function Index() {
           <p className="text-sm text-muted-foreground">
             © 2025 Sustainable Campus Initiative. Built for a greener future.
           </p>
-          <ContactFormDialog />
+          <Link to="/contact" className="text-sm text-primary hover:underline">
+            Contact Us
+          </Link>
         </div>
       </footer>
     </div>

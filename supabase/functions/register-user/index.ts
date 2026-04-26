@@ -49,8 +49,9 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? Deno.env.get('SUPABASE_PUBLISHABLE_KEY')
 
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
       console.error('Missing required environment variables')
       return jsonResponse({ error: 'Server configuration error' }, 500)
     }
@@ -66,16 +67,14 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: 'Please enter a valid email address.' }, 400)
       }
 
-      const supabase = createClient(supabaseUrl, supabaseServiceKey) as any
-      const { data, error } = await supabase.auth.admin.generateLink({
-        type: 'recovery',
-        email,
-        options: { redirectTo: getResetRedirectUrl(req) },
+      const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      }) as any
+      const { error } = await authClient.auth.resetPasswordForEmail(email, {
+        redirectTo: getResetRedirectUrl(req),
       })
 
-      if (!error && data?.properties?.action_link) {
-        await enqueueAuthEmail(supabase, 'recovery', email, data.properties.action_link)
-      } else if (error) {
+      if (error) {
         console.error('Recovery link generation failed', { message: error.message })
       }
 

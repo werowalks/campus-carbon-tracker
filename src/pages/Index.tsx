@@ -15,11 +15,14 @@ export default function Index() {
           </div>
           <span className="font-display font-bold text-xl">WattLog</span>
         </div>
-        <Link to="/login">
-          <Button variant="outline">
-            Sign In
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link to="/about">
+            <Button variant="ghost">About</Button>
+          </Link>
+          <Link to="/login">
+            <Button variant="outline">Sign In</Button>
+          </Link>
+        </div>
       </header>
 
       {/* Hero */}
@@ -47,7 +50,7 @@ export default function Index() {
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-            <Link to="/demo">
+            <Link to="/about">
               <Button size="lg" variant="outline" className="text-lg px-8">
                 Learn More
               </Button>

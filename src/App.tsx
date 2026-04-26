@@ -19,6 +19,7 @@ import Demo from "./pages/Demo";
 import Contact from "./pages/Contact";
 import ResetPassword from "./pages/ResetPassword";
 import AuthCallback from "./pages/AuthCallback";
+import About from "./pages/About";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,7 @@ function AppContent() {
         />
         <Route path="/docs" element={<Documentation />} />
         <Route path="/demo" element={<Demo />} />
+        <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

@@ -91,7 +91,7 @@ async function enqueueAuthEmail(
       subject,
       html,
       text,
-      purpose: 'transactional',
+      purpose: 'auth',
       label: type,
       idempotency_key: messageId,
       queued_at: new Date().toISOString(),

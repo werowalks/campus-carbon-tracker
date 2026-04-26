@@ -16,7 +16,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Leaf, ArrowLeft, Calculator, BookOpen, Database, Target } from 'lucide-react';
+import { Leaf, ArrowLeft, ArrowRight, Calculator, BookOpen, Database, Target } from 'lucide-react';
 import {
   CAMPUS_DEVICES,
   CAMPUS_DEVICE_CATEGORIES,

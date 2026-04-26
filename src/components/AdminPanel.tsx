@@ -303,6 +303,111 @@ export default function AdminPanel() {
     toast.success(`Exported ${filteredLogs.length} records to Excel`);
   };
 
+  const downloadFile = (content: string, filename: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportContactAnalyticsCSV = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('site_visits')
+        .select('visited_at, page_path, visitor_id, user_agent')
+        .in('page_path', ['/contact', '/contact/email-click'])
+        .order('visited_at', { ascending: false });
+
+      if (error) throw error;
+
+      const headers = ['Date', 'Time', 'Event Type', 'Page Path', 'Visitor ID', 'User Agent'];
+      const rows = (data || []).map(v => [
+        format(new Date(v.visited_at), 'yyyy-MM-dd'),
+        format(new Date(v.visited_at), 'HH:mm:ss'),
+        v.page_path === '/contact/email-click' ? 'Email Click' : 'Page View',
+        v.page_path || '',
+        v.visitor_id || '',
+        (v.user_agent || '').replace(/"/g, '""'),
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      downloadFile(
+        csvContent,
+        `contact-analytics-${format(new Date(), 'yyyy-MM-dd')}.csv`,
+        'text/csv;charset=utf-8;'
+      );
+      toast.success(`Exported ${rows.length} contact analytics records to CSV`);
+    } catch (error) {
+      console.error('Error exporting contact analytics:', error);
+      toast.error('Failed to export contact analytics');
+    }
+  };
+
+  const exportContactAnalyticsExcel = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('site_visits')
+        .select('visited_at, page_path, visitor_id, user_agent')
+        .in('page_path', ['/contact', '/contact/email-click'])
+        .order('visited_at', { ascending: false });
+
+      if (error) throw error;
+
+      const records = data || [];
+      const pageViews = records.filter(r => r.page_path === '/contact').length;
+      const emailClicks = records.filter(r => r.page_path === '/contact/email-click').length;
+      const conversionRate = pageViews > 0 ? ((emailClicks / pageViews) * 100).toFixed(2) : '0.00';
+
+      const summary = [
+        ['CONTACT PAGE ANALYTICS REPORT'],
+        [`Generated: ${format(new Date(), 'MMMM d, yyyy HH:mm')}`],
+        [''],
+        ['SUMMARY'],
+        [`Total Contact Page Views: ${pageViews}`],
+        [`Total Email Link Clicks: ${emailClicks}`],
+        [`Conversion Rate: ${conversionRate}%`],
+        [`Total Records: ${records.length}`],
+        [''],
+        ['DETAILED EVENTS'],
+      ];
+
+      const headers = ['Date', 'Time', 'Event Type', 'Page Path', 'Visitor ID', 'User Agent'];
+      const rows = records.map(v => [
+        format(new Date(v.visited_at), 'yyyy-MM-dd'),
+        format(new Date(v.visited_at), 'HH:mm:ss'),
+        v.page_path === '/contact/email-click' ? 'Email Click' : 'Page View',
+        v.page_path || '',
+        v.visitor_id || '',
+        (v.user_agent || '').replace(/"/g, '""'),
+      ]);
+
+      const csvContent = [
+        ...summary.map(row => row.join(',')),
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      downloadFile(
+        csvContent,
+        `contact-analytics-report-${format(new Date(), 'yyyy-MM-dd')}.xls`,
+        'application/vnd.ms-excel;charset=utf-8;'
+      );
+      toast.success(`Exported ${records.length} contact analytics records to Excel`);
+    } catch (error) {
+      console.error('Error exporting contact analytics:', error);
+      toast.error('Failed to export contact analytics');
+    }
+  };
+
   const handleDelete = async (id: string) => {
     try {
       await deleteLog(id);
@@ -375,32 +480,53 @@ export default function AdminPanel() {
       </div>
 
       {/* Contact Page Analytics */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="border-l-4 border-l-info">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-primary" />
               <div>
-                <p className="text-sm text-muted-foreground">Contact Page Views</p>
-                <div className="text-3xl font-bold">{visitStats.contactPageVisits}</div>
-                <p className="text-xs text-muted-foreground mt-1">Total visits to /contact</p>
+                <CardTitle>Contact Page Analytics</CardTitle>
+                <CardDescription>Track engagement on the /contact page</CardDescription>
               </div>
-              <Eye className="w-10 h-10 text-info/20" />
             </div>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-primary">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Email Link Clicks</p>
-                <div className="text-3xl font-bold">{visitStats.emailClicks}</div>
-                <p className="text-xs text-muted-foreground mt-1">Clicks on the contact email link</p>
+            <div className="flex gap-2">
+              <Button onClick={exportContactAnalyticsCSV} variant="outline" size="sm" className="gap-2">
+                <Download className="w-4 h-4" />
+                CSV
+              </Button>
+              <Button onClick={exportContactAnalyticsExcel} variant="outline" size="sm" className="gap-2">
+                <FileSpreadsheet className="w-4 h-4" />
+                Excel
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="p-4 rounded-lg border-l-4 border-l-info bg-muted/30">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Contact Page Views</p>
+                  <div className="text-3xl font-bold">{visitStats.contactPageVisits}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Total visits to /contact</p>
+                </div>
+                <Eye className="w-10 h-10 text-info/20" />
               </div>
-              <Mail className="w-10 h-10 text-primary/20" />
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="p-4 rounded-lg border-l-4 border-l-primary bg-muted/30">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Email Link Clicks</p>
+                  <div className="text-3xl font-bold">{visitStats.emailClicks}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Clicks on the contact email link</p>
+                </div>
+                <Mail className="w-10 h-10 text-primary/20" />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Tabs for different sections */}
       <Tabs defaultValue="members" className="space-y-4">

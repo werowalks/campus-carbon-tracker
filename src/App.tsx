@@ -59,6 +59,7 @@ function AppContent() {
             </DashboardLayout>
           }
         />
+        <Route path="/profile" element={<EditProfile />} />
         <Route path="/docs" element={<Documentation />} />
         <Route path="/demo" element={<Demo />} />
         <Route path="/about" element={<About />} />

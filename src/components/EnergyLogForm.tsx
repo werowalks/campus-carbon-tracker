@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnergy } from '@/contexts/EnergyContext';
 import { TIME_INTERVALS, calculateCarbonEmission, calculateEnergyKWh } from '@/types';
-import { CAMPUS_DEVICE_CATEGORIES, CATEGORY_WATTAGE, getDevicesByCategory } from '@/data/campusDevices';
+import { CAMPUS_DEVICE_CATEGORIES, CATEGORY_WATTAGE, getDevicesByCategory, CAMPUS_DEVICES } from '@/data/campusDevices';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,22 +55,27 @@ export default function EnergyLogForm() {
     setDevices(devices.map(d => {
       if (d.id === id) {
         const updated = { ...d, [field]: value };
-        
-        // Auto-fill wattage when category is selected
-        if (field === 'category') {
-          updated.wattage = (CATEGORY_WATTAGE[value] || 100).toString();
-          // Clear device name when category changes
-          updated.deviceName = '';
-        }
-        
-        // Auto-fill wattage when device is selected
+
+        // Auto-fill category and wattage when device is selected
         if (field === 'deviceName') {
-          const selectedDevice = getDevicesByCategory(d.category).find(dev => dev.name === value);
+          const selectedDevice = CAMPUS_DEVICES.find(dev => dev.name === value);
           if (selectedDevice) {
+            updated.category = selectedDevice.category;
             updated.wattage = selectedDevice.wattage.toString();
           }
         }
-        
+
+        // Auto-fill wattage when category is manually changed; clear device if it no longer matches
+        if (field === 'category') {
+          const stillValid = CAMPUS_DEVICES.find(
+            dev => dev.name === d.deviceName && dev.category === value
+          );
+          if (!stillValid) {
+            updated.deviceName = '';
+            updated.wattage = (CATEGORY_WATTAGE[value] || 100).toString();
+          }
+        }
+
         return updated;
       }
       return d;
@@ -168,8 +173,6 @@ export default function EnergyLogForm() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 {devices.map((device, index) => {
-                  const availableDevices = device.category ? getDevicesForCategory(device.category) : [];
-                  
                   return (
                     <div key={device.id} className="p-4 border rounded-lg space-y-4 relative">
                       {devices.length > 1 && (
@@ -193,13 +196,23 @@ export default function EnergyLogForm() {
 
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
+                          <Label>Device *</Label>
+                          <DeviceCombobox
+                            devices={CAMPUS_DEVICES}
+                            value={device.deviceName}
+                            onValueChange={(value) => updateDevice(device.id, 'deviceName', value)}
+                            placeholder="Search devices..."
+                          />
+                        </div>
+
+                        <div className="space-y-2">
                           <Label>Category *</Label>
                           <Select
                             value={device.category}
                             onValueChange={(value) => updateDevice(device.id, 'category', value)}
                           >
                             <SelectTrigger className="bg-popover">
-                              <SelectValue placeholder="Select category" />
+                              <SelectValue placeholder="Auto-filled from device" />
                             </SelectTrigger>
                             <SelectContent className="bg-popover z-50">
                               {CAMPUS_DEVICE_CATEGORIES.map((cat) => (
@@ -209,17 +222,6 @@ export default function EnergyLogForm() {
                               ))}
                             </SelectContent>
                           </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label>Device *</Label>
-                          <DeviceCombobox
-                            devices={availableDevices}
-                            value={device.deviceName}
-                            onValueChange={(value) => updateDevice(device.id, 'deviceName', value)}
-                            disabled={!device.category}
-                            placeholder={device.category ? "Search devices..." : "Select category first"}
-                          />
                         </div>
 
                         <div className="space-y-2">
@@ -311,7 +313,7 @@ export default function EnergyLogForm() {
                 </Button>
 
                 <Button type="submit" className="w-full eco-gradient">
-                  Log All Devices
+                  Add All Devices
                 </Button>
               </form>
             </CardContent>
@@ -379,7 +381,7 @@ export default function EnergyLogForm() {
             <CardContent className="pt-6">
               <h4 className="font-semibold text-sm mb-2">💡 Quick Tips</h4>
               <ul className="text-xs text-muted-foreground space-y-1">
-                <li>• Select a category first, then choose a device</li>
+                <li>• Pick a device — its category and wattage auto-fill</li>
                 <li>• Wattage auto-fills based on category average</li>
                 <li>• Log regularly for better tracking</li>
               </ul>

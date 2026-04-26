@@ -16,7 +16,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Leaf, ArrowLeft, Calculator, BookOpen, Database, Target } from 'lucide-react';
+import { Leaf, ArrowLeft, ArrowRight, Calculator, BookOpen, Database, Target } from 'lucide-react';
 import {
   CAMPUS_DEVICES,
   CAMPUS_DEVICE_CATEGORIES,
@@ -72,14 +72,22 @@ export default function About() {
               instantly see the resulting energy and carbon impact.
             </p>
           </Card>
-          <Card className="p-6">
-            <Database className="w-8 h-8 text-primary mb-3" />
-            <h3 className="font-display font-semibold text-lg mb-2">How It Works</h3>
-            <p className="text-sm text-muted-foreground">
-              Users select a device, enter the duration of use, and the system
-              computes kilowatt-hours and CO₂ emissions using verified formulas.
-            </p>
-          </Card>
+          <Link to="/demo" className="group">
+            <Card className="p-6 h-full transition-all hover:border-primary hover:shadow-lg hover:-translate-y-1 cursor-pointer relative">
+              <Database className="w-8 h-8 text-primary mb-3" />
+              <h3 className="font-display font-semibold text-lg mb-2 flex items-center gap-2">
+                How It Works
+                <ArrowRight className="w-4 h-4 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Users select a device, enter the duration of use, and the system
+                computes kilowatt-hours and CO₂ emissions using verified formulas.
+              </p>
+              <span className="text-xs text-primary font-medium mt-3 inline-block">
+                Try the interactive demo →
+              </span>
+            </Card>
+          </Link>
           <Card className="p-6">
             <Target className="w-8 h-8 text-primary mb-3" />
             <h3 className="font-display font-semibold text-lg mb-2">Why It Matters</h3>

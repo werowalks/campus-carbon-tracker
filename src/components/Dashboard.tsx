@@ -208,7 +208,7 @@ export default function Dashboard() {
 
       {/* Charts Section */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Top 3 Devices */}
+        {/* Top 10 Devices */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

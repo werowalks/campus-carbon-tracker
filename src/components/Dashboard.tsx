@@ -213,7 +213,7 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Trophy className="w-5 h-5 text-warning" />
-              Top 3 Energy Consuming Devices
+              Top 10 Energy Consuming Devices
             </CardTitle>
           </CardHeader>
           <CardContent>

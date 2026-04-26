@@ -20,6 +20,7 @@ import Contact from "./pages/Contact";
 import ResetPassword from "./pages/ResetPassword";
 import AuthCallback from "./pages/AuthCallback";
 import About from "./pages/About";
+import EditProfile from "./pages/EditProfile";
 
 const queryClient = new QueryClient();
 

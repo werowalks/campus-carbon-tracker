@@ -7,6 +7,8 @@ const corsHeaders = {
 
 const SITE_NAME = 'WattLog'
 const SITE_URL = 'https://campuswattwatch.com'
+
+type AuthEmailType = 'signup' | 'recovery'
 const allowedOrigins = new Set([
   'https://campuswattwatch.com',
   'https://www.campuswattwatch.com',
@@ -35,6 +37,33 @@ function getResetRedirectUrl(req: Request): string {
   const origin = req.headers.get('origin')
   const safeOrigin = origin && allowedOrigins.has(origin) ? origin : SITE_URL
   return `${safeOrigin}/reset-password`
+}
+
+async function sendAuthEmail(
+  supabase: any,
+  email: string,
+  type: AuthEmailType,
+  redirectTo: string,
+  password?: string,
+  name?: string,
+) {
+  if (type === 'signup') {
+    return await supabase.auth.admin.generateLink({
+      type: 'signup',
+      email,
+      password,
+      options: {
+        redirectTo,
+        data: { name },
+      },
+    })
+  }
+
+  return await supabase.auth.admin.generateLink({
+    type: 'recovery',
+    email,
+    options: { redirectTo },
+  })
 }
 
 Deno.serve(async (req) => {

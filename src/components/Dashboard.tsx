@@ -165,6 +165,38 @@ export default function Dashboard() {
             />
           </div>
         </TabsContent>
+
+        <TabsContent value="year" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              title="Yearly Energy"
+              value={`${stats.totalEnergyYear.toFixed(2)} kWh`}
+              subtitle={`Year ${new Date().getFullYear()}`}
+              icon={Zap}
+              variant="primary"
+            />
+            <StatCard
+              title="Yearly Carbon"
+              value={`${stats.totalCarbonYear.toFixed(2)} kg`}
+              subtitle="CO₂ equivalent"
+              icon={Leaf}
+              variant="success"
+            />
+            <StatCard
+              title="Monthly Average"
+              value={`${(stats.totalEnergyYear / 12).toFixed(2)} kWh`}
+              subtitle="Per month"
+              icon={TrendingUp}
+            />
+            <StatCard
+              title="Trees Needed"
+              value={Math.ceil(stats.totalCarbonYear / 21)}
+              subtitle="To offset yearly emissions"
+              icon={Leaf}
+              variant="warning"
+            />
+          </div>
+        </TabsContent>
       </Tabs>
 
       {/* Charts Section */}

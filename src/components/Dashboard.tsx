@@ -32,13 +32,19 @@ const CHART_COLORS = [
 ];
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { user, profile, isAdmin } = useAuth();
-  const { getStats } = useEnergy();
+  const { getStats, logs, isLoading } = useEnergy();
   const [period, setPeriod] = useState<'today' | 'week' | 'month' | 'year'>('today');
   const [topSort, setTopSort] = useState<'energy' | 'carbon'>('energy');
 
   // Get user-specific stats for regular users, all stats for admins
   const stats = getStats(isAdmin ? undefined : user?.id, period);
+
+  // Empty state: regular user with no logs yet
+  const userLogs = isAdmin ? logs : logs.filter(l => l.user_id === user?.id);
+  const isEmpty = !isLoading && !isAdmin && userLogs.length === 0;
+  const [showEmptyDialog, setShowEmptyDialog] = useState(true);
 
   const periodLabel =
     period === 'today' ? 'today' :

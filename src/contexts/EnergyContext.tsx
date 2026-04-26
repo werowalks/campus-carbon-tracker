@@ -202,8 +202,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
 
     const topDevices = Object.entries(deviceUsage)
       .map(([name, data]) => ({ name, ...data }))
-      .sort((a, b) => b.usage - a.usage)
-      .slice(0, 10);
+      .sort((a, b) => b.usage - a.usage);
 
     // Category breakdown
     const categoryUsage: Record<string, number> = {};

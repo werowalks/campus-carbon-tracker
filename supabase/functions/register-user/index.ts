@@ -21,6 +21,21 @@ const allowedOrigins = new Set([
   'http://localhost:5173',
 ])
 
+const emailTemplates = {
+  signup: SignupEmail,
+  recovery: RecoveryEmail,
+} as const
+
+const emailSubjects = {
+  signup: 'Confirm your email - WattLog',
+  recovery: 'Reset your password - WattLog',
+} as const
+
+const emailLabels = {
+  signup: 'signup',
+  recovery: 'recovery',
+} as const
+
 function jsonResponse(body: Record<string, unknown>, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -42,6 +57,63 @@ function getResetRedirectUrl(req: Request): string {
   const origin = req.headers.get('origin')
   const safeOrigin = origin && allowedOrigins.has(origin) ? origin : SITE_URL
   return `${safeOrigin}/reset-password`
+}
+
+async function enqueueAuthEmail(
+  supabase: any,
+  type: keyof typeof emailTemplates,
+  email: string,
+  confirmationUrl: string,
+) {
+  const EmailTemplate = emailTemplates[type]
+  const templateProps = {
+    siteName: SITE_NAME,
+    siteUrl: SITE_URL,
+    recipient: email,
+    confirmationUrl,
+  }
+
+  const html = await renderAsync(React.createElement(EmailTemplate, templateProps))
+  const text = await renderAsync(React.createElement(EmailTemplate, templateProps), {
+    plainText: true,
+  })
+  const messageId = crypto.randomUUID()
+  const label = emailLabels[type]
+
+  await supabase.from('email_send_log').insert({
+    message_id: messageId,
+    template_name: label,
+    recipient_email: email,
+    status: 'pending',
+  })
+
+  const { error } = await supabase.rpc('enqueue_email', {
+    queue_name: 'auth_emails',
+    payload: {
+      message_id: messageId,
+      to: email,
+      from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+      sender_domain: SENDER_DOMAIN,
+      subject: emailSubjects[type],
+      html,
+      text,
+      purpose: 'transactional',
+      label,
+      idempotency_key: `${label}-${messageId}`,
+      queued_at: new Date().toISOString(),
+    },
+  })
+
+  if (error) {
+    await supabase.from('email_send_log').insert({
+      message_id: messageId,
+      template_name: label,
+      recipient_email: email,
+      status: 'failed',
+      error_message: 'Failed to enqueue auth email',
+    })
+    throw error
+  }
 }
 
 Deno.serve(async (req) => {

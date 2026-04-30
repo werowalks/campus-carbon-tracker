@@ -206,22 +206,14 @@ export default function EnergyLogForm() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label>Category *</Label>
-                          <Select
+                          <Label>Category</Label>
+                          <Input
+                            readOnly
+                            disabled
                             value={device.category}
-                            onValueChange={(value) => updateDevice(device.id, 'category', value)}
-                          >
-                            <SelectTrigger className="bg-popover">
-                              <SelectValue placeholder="Auto-filled from device" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-popover z-50">
-                              {CAMPUS_DEVICE_CATEGORIES.map((cat) => (
-                                <SelectItem key={cat} value={cat}>
-                                  {cat}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                            placeholder="Auto-filled from device"
+                            className="bg-muted cursor-not-allowed"
+                          />
                         </div>
 
                         <div className="space-y-2">

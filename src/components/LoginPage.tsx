@@ -130,7 +130,20 @@ export default function LoginPage() {
       });
 
       if (error) {
-        setErrors({ forgotPassword: error.message });
+        let serverMessage: string | undefined;
+        try {
+          const ctx: any = (error as any).context;
+          if (ctx && typeof ctx.json === 'function') {
+            const body = await ctx.json();
+            serverMessage = body?.error;
+          } else if (ctx && typeof ctx.text === 'function') {
+            const text = await ctx.text();
+            try { serverMessage = JSON.parse(text)?.error; } catch { serverMessage = text; }
+          }
+        } catch (e) {
+          console.error('Failed to parse error body:', e);
+        }
+        setErrors({ forgotPassword: serverMessage || error.message });
       } else if (!data?.success) {
         setErrors({ forgotPassword: data?.error || 'Unable to send password reset email.' });
       } else {

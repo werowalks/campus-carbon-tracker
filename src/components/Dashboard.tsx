@@ -313,7 +313,14 @@ export default function Dashboard() {
                     />
                     <YAxis
                       tick={{ fontSize: 11 }}
-                      domain={[0, 100]}
+                      domain={[0, (dataMax: number) => {
+                        if (!dataMax || dataMax <= 0) return 10;
+                        // Round up to a "nice" value above the max (next multiple of 10, capped at 100)
+                        const padded = dataMax * 1.25;
+                        const nice = Math.min(100, Math.ceil(padded / 10) * 10);
+                        return Math.max(nice, 10);
+                      }]}
+                      allowDecimals={false}
                       tickFormatter={(v: number) => `${v}%`}
                       label={{ value: '% of total', angle: -90, position: 'insideLeft', style: { fontSize: 11 } }}
                     />

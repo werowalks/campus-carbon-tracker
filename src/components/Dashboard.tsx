@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Zap, Leaf, TrendingUp, Trophy, Calendar, Clock, CalendarDays } from 'lucide-react';
+import { Zap, Leaf, TrendingUp, Trophy, Calendar, Clock, CalendarDays, BatteryCharging } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { DEVICE_CATEGORIES } from '@/types';
 
@@ -105,7 +105,7 @@ export default function Dashboard() {
               title="Energy Consumed"
               value={`${stats.totalEnergyToday.toFixed(2)} kWh`}
               subtitle="Today's usage"
-              icon={Zap}
+              icon={BatteryCharging}
               variant="primary"
             />
             <StatCard

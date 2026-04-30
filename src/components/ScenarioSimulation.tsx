@@ -316,6 +316,37 @@ export default function ScenarioSimulation() {
             </Card>
           )}
 
+          {/* Computation Documentation */}
+          <Card className="bg-primary/5 border-primary/20">
+            <CardContent className="pt-6">
+              <h4 className="font-semibold text-sm mb-2">💡 How are these computed?</h4>
+              <ul className="text-xs text-muted-foreground space-y-1.5">
+                <li>
+                  • <strong>Baseline Energy (kWh)</strong> = Σ (Wattage × Duration in min) ÷ 60,000 — summed across all of this month's logs.
+                </li>
+                <li>
+                  • <strong>Baseline CO₂ (kg)</strong> = Σ stored carbon emissions per log, originally computed as kWh × {CARBON_EMISSION_FACTOR} kg CO₂/kWh (Philippine grid factor, DOE).
+                </li>
+                <li>
+                  • <strong>Reduce Electricity by 10%</strong> → Projected Energy = Baseline Energy × 0.90 (simulates a campus-wide efficiency initiative).
+                </li>
+                <li>
+                  • <strong>Switch to Renewable Grid</strong> → Projected CO₂ = Projected Energy × {RENEWABLE_EMISSION_FACTOR} kg CO₂/kWh instead of {CARBON_EMISSION_FACTOR} (DOE PH renewable target).
+                </li>
+                <li>
+                  • <strong>Remove a High-Energy Category</strong> → Logs in the chosen category are excluded before recomputing energy and CO₂.
+                </li>
+                <li>
+                  • <strong>Combined scenarios</strong> are applied in order: category removal → 10% reduction → emission factor. Projected CO₂ always equals Projected Energy × active emission factor.
+                </li>
+                <li>
+                  • <strong>% Reduction</strong> = (Baseline − Projected) ÷ Baseline × 100, shown separately for energy and carbon.
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+
+
           {/* Reduction Summary */}
           {anyActive && (
             <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">

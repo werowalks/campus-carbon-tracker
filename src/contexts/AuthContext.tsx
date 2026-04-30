@@ -146,9 +146,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
       });
 
+      // When the edge function returns non-2xx, supabase-js wraps it in FunctionsHttpError
+      // and the actual JSON body is on error.context. Parse it to surface real messages.
       if (error) {
         console.error('Registration error:', error);
-        return { success: false, error: error.message };
+        let serverMessage: string | undefined;
+        try {
+          const ctx: any = (error as any).context;
+          if (ctx && typeof ctx.json === 'function') {
+            const body = await ctx.json();
+            serverMessage = body?.error;
+          } else if (ctx && typeof ctx.text === 'function') {
+            const text = await ctx.text();
+            try { serverMessage = JSON.parse(text)?.error; } catch { serverMessage = text; }
+          }
+        } catch (e) {
+          console.error('Failed to parse error body:', e);
+        }
+        return { success: false, error: serverMessage || error.message };
       }
 
       if (!data?.success) {

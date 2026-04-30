@@ -192,7 +192,15 @@ Deno.serve(async (req) => {
 
     if (error) {
       console.error('Signup link generation failed', { message: error.message })
-      const alreadyRegistered = /already|registered|exists/i.test(error.message)
+      const msg = error.message || ''
+      const alreadyRegistered = /already|registered|exists/i.test(msg)
+      const weakPassword = /pwned|leaked|breach|weak|compromis|common|easy to guess|HIBP/i.test(msg)
+
+      if (weakPassword) {
+        return jsonResponse({
+          error: 'This password has been found in known data breaches and is unsafe. Please choose a stronger, unique password (mix of upper/lowercase letters, numbers, and symbols).',
+        }, 400)
+      }
 
       if (alreadyRegistered) {
         const { data: resendData, error: resendError } = await supabase.auth.admin.generateLink({
@@ -214,7 +222,7 @@ Deno.serve(async (req) => {
         })
       }
 
-      return jsonResponse({ error: error.message || 'Registration failed.' }, 400)
+      return jsonResponse({ error: msg || 'Registration failed.' }, 400)
     }
 
     if (data?.properties?.action_link) {

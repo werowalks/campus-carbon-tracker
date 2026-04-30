@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Leaf,
   LayoutDashboard,
-  PlusCircle,
+  Zap,
   LogOut,
   Shield,
   UserCog,
@@ -50,7 +50,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Log Energy', href: '/log', icon: PlusCircle },
+    { name: 'Log Energy', href: '/log', icon: Zap },
   ];
 
   if (isAdmin) {

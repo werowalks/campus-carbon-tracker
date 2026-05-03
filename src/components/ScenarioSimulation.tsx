@@ -35,8 +35,11 @@ export default function ScenarioSimulation() {
 
   // Categories present in the data
   const activeCategories = useMemo(() => {
-    const cats = new Set(monthLogs.map(l => l.category));
-    return DEVICE_CATEGORIES.filter(c => cats.has(c.id));
+    const cats = Array.from(new Set(monthLogs.map(l => l.category)));
+    return cats.map(cat => {
+      const match = DEVICE_CATEGORIES.find(c => c.id === cat || c.name === cat);
+      return { id: cat, name: match ? match.name : cat };
+    });
   }, [monthLogs]);
 
   // Baseline (current) totals

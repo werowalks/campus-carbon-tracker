@@ -37,13 +37,14 @@ export interface DashboardStats {
 }
 
 export const DEVICE_CATEGORIES: DeviceCategory[] = [
-  { id: 'computer', name: 'Computing', icon: 'laptop', avgWattage: 150 },
-  { id: 'hvac', name: 'HVAC', icon: 'thermometer', avgWattage: 1500 },
+  { id: 'computer', name: 'Computers & Laptops', icon: 'laptop', avgWattage: 150 },
   { id: 'lighting', name: 'Lighting', icon: 'lightbulb', avgWattage: 60 },
-  { id: 'projector', name: 'Presentation', icon: 'projector', avgWattage: 300 },
-  { id: 'printer', name: 'Printing', icon: 'printer', avgWattage: 500 },
-  { id: 'lab', name: 'Laboratory', icon: 'flask-conical', avgWattage: 800 },
-  { id: 'kitchen', name: 'Pantry', icon: 'utensils', avgWattage: 1000 },
+  { id: 'hvac', name: 'HVAC / Air Conditioning', icon: 'thermometer', avgWattage: 1500 },
+  { id: 'projector', name: 'Projectors', icon: 'projector', avgWattage: 300 },
+  { id: 'printer', name: 'Printers & Copiers', icon: 'printer', avgWattage: 500 },
+  { id: 'lab', name: 'Laboratory Equipment', icon: 'flask-conical', avgWattage: 800 },
+  { id: 'kitchen', name: 'Kitchen Appliances', icon: 'utensils', avgWattage: 1000 },
+  { id: 'other', name: 'Other Devices', icon: 'plug', avgWattage: 100 },
 ];
 
 export const TIME_INTERVALS = [

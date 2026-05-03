@@ -392,7 +392,7 @@ export default function Dashboard() {
           <AlertDialogFooter>
             <AlertDialogCancel>Not now</AlertDialogCancel>
             <AlertDialogAction onClick={() => navigate('/log')}>
-              Yes, log energy
+              Yes, add device
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

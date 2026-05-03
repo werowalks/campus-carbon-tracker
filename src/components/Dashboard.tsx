@@ -154,9 +154,9 @@ export default function Dashboard() {
               icon={TrendingUp}
             />
             <StatCard
-              title="Monthly Progress"
-              value={`${((stats.totalEnergyWeek / stats.totalEnergyMonth) * 100).toFixed(0)}%`}
-              subtitle="Of monthly total"
+              title="Monthly Energy"
+              value={`${stats.totalEnergyMonth.toFixed(2)} kWh`}
+              subtitle="This month so far"
               icon={Calendar}
               variant="warning"
             />

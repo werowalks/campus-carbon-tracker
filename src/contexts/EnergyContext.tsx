@@ -215,7 +215,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
 
     const totalEnergy = Object.values(categoryUsage).reduce((sum, val) => sum + val, 0);
     const categoryBreakdown = Object.entries(categoryUsage).map(([category, energy]) => ({
-      category: DEVICE_CATEGORIES.find(c => c.id === category)?.name || category,
+      category,
       percentage: totalEnergy > 0 ? (energy / totalEnergy) * 100 : 0,
       energy,
     }));

@@ -234,7 +234,7 @@ export default function AdminPanel() {
       format(new Date(log.timestamp), 'yyyy-MM-dd'),
       format(new Date(log.timestamp), 'HH:mm'),
       log.device_name,
-      DEVICE_CATEGORIES.find(c => c.id === log.category)?.name || log.category,
+      log.category,
       log.wattage,
       log.duration,
       calculateEnergyKWh(log.wattage, log.duration).toFixed(4),
@@ -278,7 +278,7 @@ export default function AdminPanel() {
       format(new Date(log.timestamp), 'yyyy-MM-dd'),
       format(new Date(log.timestamp), 'HH:mm'),
       log.device_name,
-      DEVICE_CATEGORIES.find(c => c.id === log.category)?.name || log.category,
+      log.category,
       log.wattage,
       log.duration,
       calculateEnergyKWh(log.wattage, log.duration).toFixed(4),
@@ -736,8 +736,8 @@ export default function AdminPanel() {
                   </SelectTrigger>
                   <SelectContent className="bg-popover z-50">
                     <SelectItem value="all">All Categories</SelectItem>
-                    {DEVICE_CATEGORIES.map(cat => (
-                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                    {CAMPUS_DEVICE_CATEGORIES.map(cat => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -779,7 +779,7 @@ export default function AdminPanel() {
                           </TableCell>
                           <TableCell className="font-medium">{log.device_name}</TableCell>
                           <TableCell className="text-sm text-muted-foreground">
-                            {DEVICE_CATEGORIES.find(c => c.id === log.category)?.name || log.category}
+                            {log.category}
                           </TableCell>
                           <TableCell className="text-right">{log.wattage}W</TableCell>
                           <TableCell className="text-right">{log.duration}min</TableCell>

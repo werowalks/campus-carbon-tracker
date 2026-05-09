@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useEnergy } from '@/contexts/EnergyContext';
-import { DEVICE_CATEGORIES, CARBON_EMISSION_FACTOR, calculateEnergyKWh } from '@/types';
+import { CARBON_EMISSION_FACTOR, calculateEnergyKWh } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -36,10 +36,7 @@ export default function ScenarioSimulation() {
   // Categories present in the data
   const activeCategories = useMemo(() => {
     const cats = Array.from(new Set(monthLogs.map(l => l.category)));
-    return cats.map(cat => {
-      const match = DEVICE_CATEGORIES.find(c => c.id === cat || c.name === cat);
-      return { id: cat, name: match ? match.name : cat };
-    });
+    return cats.map(cat => ({ id: cat, name: cat }));
   }, [monthLogs]);
 
   // Baseline (current) totals

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
-import { DashboardStats, calculateCarbonEmission, calculateEnergyKWh, DEVICE_CATEGORIES } from '@/types';
+import { DashboardStats, calculateCarbonEmission, calculateEnergyKWh } from '@/types';
 
 export interface EnergyLog {
   id: string;
@@ -215,7 +215,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
 
     const totalEnergy = Object.values(categoryUsage).reduce((sum, val) => sum + val, 0);
     const categoryBreakdown = Object.entries(categoryUsage).map(([category, energy]) => ({
-      category: DEVICE_CATEGORIES.find(c => c.id === category)?.name || category,
+      category,
       percentage: totalEnergy > 0 ? (energy / totalEnergy) * 100 : 0,
       energy,
     }));

@@ -5,13 +5,6 @@ export interface User {
   role: 'user' | 'admin';
 }
 
-export interface DeviceCategory {
-  id: string;
-  name: string;
-  icon: string;
-  avgWattage: number;
-}
-
 export interface EnergyLog {
   id: string;
   userId: string;
@@ -36,16 +29,7 @@ export interface DashboardStats {
   categoryBreakdown: { category: string; percentage: number; energy: number }[];
 }
 
-export const DEVICE_CATEGORIES: DeviceCategory[] = [
-  { id: 'computer', name: 'Computers & Laptops', icon: 'laptop', avgWattage: 150 },
-  { id: 'lighting', name: 'Lighting', icon: 'lightbulb', avgWattage: 60 },
-  { id: 'hvac', name: 'HVAC / Air Conditioning', icon: 'thermometer', avgWattage: 1500 },
-  { id: 'projector', name: 'Projectors', icon: 'projector', avgWattage: 300 },
-  { id: 'printer', name: 'Printers & Copiers', icon: 'printer', avgWattage: 500 },
-  { id: 'lab', name: 'Laboratory Equipment', icon: 'flask-conical', avgWattage: 800 },
-  { id: 'kitchen', name: 'Kitchen Appliances', icon: 'utensils', avgWattage: 1000 },
-  { id: 'other', name: 'Other Devices', icon: 'plug', avgWattage: 100 },
-];
+
 
 export const TIME_INTERVALS = [
   { value: 15, label: '15 minutes' },

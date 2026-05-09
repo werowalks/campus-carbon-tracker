@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Zap, Leaf, TrendingUp, Trophy, Calendar, Clock, CalendarDays, BatteryCharging } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
-import { DEVICE_CATEGORIES } from '@/types';
+
 
 const CHART_COLORS = [
   'hsl(152, 45%, 28%)',
@@ -61,9 +61,6 @@ export default function Dashboard() {
       color: CHART_COLORS[index % CHART_COLORS.length],
     }));
 
-  const getCategoryIcon = (categoryId: string) => {
-    return DEVICE_CATEGORIES.find(c => c.name === categoryId)?.icon || 'plug';
-  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -268,7 +265,7 @@ export default function Dashboard() {
                     <div className="flex-1">
                       <p className="font-medium text-sm">{device.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {DEVICE_CATEGORIES.find(c => c.id === device.category)?.name || device.category}
+                        {device.category}
                       </p>
                     </div>
                     <div className="text-right">

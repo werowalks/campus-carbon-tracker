@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
-import { DashboardStats, calculateCarbonEmission, calculateEnergyKWh, DEVICE_CATEGORIES } from '@/types';
+import { DashboardStats, calculateCarbonEmission, calculateEnergyKWh } from '@/types';
 
 export interface EnergyLog {
   id: string;

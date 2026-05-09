@@ -265,7 +265,7 @@ export default function Dashboard() {
                     <div className="flex-1">
                       <p className="font-medium text-sm">{device.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {DEVICE_CATEGORIES.find(c => c.id === device.category)?.name || device.category}
+                        {device.category}
                       </p>
                     </div>
                     <div className="text-right">

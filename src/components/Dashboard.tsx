@@ -61,9 +61,6 @@ export default function Dashboard() {
       color: CHART_COLORS[index % CHART_COLORS.length],
     }));
 
-  const getCategoryIcon = (categoryId: string) => {
-    return DEVICE_CATEGORIES.find(c => c.name === categoryId)?.icon || 'plug';
-  };
 
   return (
     <div className="space-y-6 animate-fade-in">

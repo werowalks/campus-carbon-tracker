@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Zap, Leaf, TrendingUp, Trophy, Calendar, Clock, CalendarDays, BatteryCharging } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
-import { DEVICE_CATEGORIES } from '@/types';
+
 
 const CHART_COLORS = [
   'hsl(152, 45%, 28%)',

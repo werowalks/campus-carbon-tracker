@@ -5,13 +5,6 @@ export interface User {
   role: 'user' | 'admin';
 }
 
-export interface DeviceCategory {
-  id: string;
-  name: string;
-  icon: string;
-  avgWattage: number;
-}
-
 export interface EnergyLog {
   id: string;
   userId: string;

@@ -36,7 +36,7 @@ interface Member {
   email: string;
   avatar_url: string | null;
   created_at: string;
-  role: 'admin' | 'user';
+  role: 'super_admin' | 'admin' | 'user';
 }
 
 interface SiteVisitStats {

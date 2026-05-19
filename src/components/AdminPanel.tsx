@@ -151,7 +151,7 @@ export default function AdminPanel() {
     }
   };
 
-  const handleRoleChange = async (userId: string, newRole: 'admin' | 'user') => {
+  const handleRoleChange = async (userId: string, newRole: 'super_admin' | 'admin' | 'user') => {
     try {
       setUpdatingRole(userId);
       
@@ -167,7 +167,7 @@ export default function AdminPanel() {
         m.user_id === userId ? { ...m, role: newRole } : m
       ));
 
-      toast.success(`Role updated to ${newRole}`);
+      toast.success(`Role updated to ${newRole.replace('_', ' ')}`);
     } catch (error) {
       console.error('Error updating role:', error);
       toast.error('Failed to update role');

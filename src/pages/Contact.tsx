@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Leaf, Mail, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import SEO from '@/components/SEO';
 
 export default function Contact() {
   const trackEmailClick = async () => {
@@ -23,6 +24,11 @@ export default function Contact() {
   };
   return (
     <div className="min-h-screen hero-gradient">
+      <SEO
+        title="Contact WattLog — Sustainable Campus Initiative"
+        description="Get in touch with the WattLog team for questions about campus energy tracking, carbon emissions, or partnership opportunities."
+        path="/contact"
+      />
       {/* Header */}
       <header className="container py-6 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">

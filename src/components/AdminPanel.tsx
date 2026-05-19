@@ -533,7 +533,7 @@ export default function AdminPanel() {
 
       {/* Tabs for different sections */}
       <Tabs defaultValue="members" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
+        <TabsList className={`grid w-full ${isSuperAdmin ? 'grid-cols-5' : 'grid-cols-4'} lg:w-auto lg:inline-flex`}>
           <TabsTrigger value="members" className="gap-2">
             <Users className="w-4 h-4" />
             Members
@@ -550,6 +550,12 @@ export default function AdminPanel() {
             <FlaskConical className="w-4 h-4" />
             Predictive
           </TabsTrigger>
+          {isSuperAdmin && (
+            <TabsTrigger value="catalog" className="gap-2">
+              <Cpu className="w-4 h-4" />
+              Device Catalog
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* Members Tab */}

@@ -97,7 +97,7 @@ export default function EditEnergyLogDialog({ log, open, onOpenChange }: EditEne
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent className="bg-popover z-50">
-                {CAMPUS_DEVICE_CATEGORIES.map((cat) => (
+                {categories.map((cat) => (
                   <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                 ))}
               </SelectContent>

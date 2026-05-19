@@ -20,6 +20,7 @@ interface EditEnergyLogDialogProps {
 
 export default function EditEnergyLogDialog({ log, open, onOpenChange }: EditEnergyLogDialogProps) {
   const { updateLog } = useEnergy();
+  const { categories, categoryWattage, emissionFactor, getDevicesByCategory } = useDevices();
   const [category, setCategory] = useState(log.category);
   const [deviceName, setDeviceName] = useState(log.device_name);
   const [wattage, setWattage] = useState(log.wattage.toString());
@@ -33,7 +34,7 @@ export default function EditEnergyLogDialog({ log, open, onOpenChange }: EditEne
 
   const handleCategoryChange = (value: string) => {
     setCategory(value);
-    setWattage((CATEGORY_WATTAGE[value] || 100).toString());
+    setWattage((categoryWattage[value] || 100).toString());
     setDeviceName('');
   };
 

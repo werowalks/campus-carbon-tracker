@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useEnergy } from '@/contexts/EnergyContext';
-import { CARBON_EMISSION_FACTOR, calculateEnergyKWh } from '@/types';
+import { useDevices } from '@/contexts/DevicesContext';
+import { calculateEnergyKWh } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';

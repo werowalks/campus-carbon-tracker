@@ -53,7 +53,7 @@ export default function EditEnergyLogDialog({ log, open, onOpenChange }: EditEne
   const parsedWattage = parseInt(wattage) || 0;
   const preview = parsedDuration > 0 && parsedWattage > 0 ? {
     energy: calculateEnergyKWh(parsedWattage, parsedDuration),
-    carbon: calculateCarbonEmission(parsedWattage, parsedDuration),
+    carbon: calculateCarbonEmission(parsedWattage, parsedDuration, emissionFactor),
   } : null;
 
   const handleSave = async () => {

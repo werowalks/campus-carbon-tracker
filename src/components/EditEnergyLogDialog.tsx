@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DeviceCombobox } from '@/components/DeviceCombobox';
-import { CAMPUS_DEVICE_CATEGORIES, CATEGORY_WATTAGE, getDevicesByCategory } from '@/data/campusDevices';
+import { useDevices } from '@/contexts/DevicesContext';
 import { TIME_INTERVALS, calculateCarbonEmission, calculateEnergyKWh } from '@/types';
 import { toast } from 'sonner';
 import { Zap, Clock } from 'lucide-react';

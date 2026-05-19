@@ -697,6 +697,10 @@ export default function AdminPanel() {
                     <span className="text-xl font-bold">{members.filter(m => m.role === 'admin').length}</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                    <span className="text-muted-foreground">Super Admins</span>
+                    <span className="text-xl font-bold">{members.filter(m => m.role === 'super_admin').length}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                     <span className="text-muted-foreground">Active Contributors</span>
                     <span className="text-xl font-bold">{new Set(logs.map(l => l.user_id)).size}</span>
                   </div>

@@ -143,7 +143,7 @@ export default function EnergyLogForm() {
 
     return {
       energy: calculateEnergyKWh(wattage, duration),
-      carbon: calculateCarbonEmission(wattage, duration),
+      carbon: calculateCarbonEmission(wattage, duration, emissionFactor),
     };
   };
 

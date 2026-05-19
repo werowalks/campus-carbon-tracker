@@ -15,10 +15,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { CampusDevice } from '@/data/campusDevices';
+export interface DeviceComboboxItem {
+  name: string;
+  wattage: number;
+}
 
 interface DeviceComboboxProps {
-  devices: CampusDevice[];
+  devices: DeviceComboboxItem[];
   value: string;
   onValueChange: (value: string) => void;
   disabled?: boolean;

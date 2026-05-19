@@ -832,6 +832,12 @@ export default function AdminPanel() {
         <TabsContent value="simulation">
           <ScenarioSimulation />
         </TabsContent>
+        {/* Device Catalog Tab (super_admin only) */}
+        {isSuperAdmin && (
+          <TabsContent value="catalog">
+            <DeviceCatalogPanel />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

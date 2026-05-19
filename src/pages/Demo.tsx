@@ -10,6 +10,7 @@ import {
   Users, Shield, Download, FlaskConical, TrendingDown,
   Plug, Clock, Eye, FileSpreadsheet, UserCog
 } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 // Mock data for demo
 const mockUserStats = {
@@ -67,6 +68,11 @@ export default function Demo() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="WattLog Demo — Interactive Dashboard Walkthrough"
+        description="Try a guided demo of WattLog: log device usage, view real-time energy and CO₂ analytics, and explore admin tools and predictive scenarios."
+        path="/demo"
+      />
       {/* Header */}
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container py-4 flex items-center justify-between">

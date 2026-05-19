@@ -2,11 +2,23 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Leaf, Zap, BarChart3, Download, ArrowRight, Building2 } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 
 export default function Index() {
   return (
     <div className="min-h-screen hero-gradient">
+      <SEO
+        title="WattLog — Track Your Campus Carbon Footprint"
+        description="An integrated dashboard for universities to monitor energy consumption, track carbon emissions, and build a more sustainable campus."
+        path="/"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: 'WattLog',
+          url: 'https://campuswattwatch.com',
+        }}
+      />
       {/* Header */}
       <header className="container py-6 flex items-center justify-between">
         <div className="flex items-center gap-2">

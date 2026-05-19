@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import MermaidDiagram from "@/components/MermaidDiagram";
+import SEO from "@/components/SEO";
 
 const erdDiagram = `erDiagram
     AUTH_USERS {
@@ -757,6 +758,20 @@ const Documentation = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Documentation — WattLog Chapter 3 Methodology"
+        description="Design and development methodology for WattLog: system architecture, data model, calculation formulas, and predictive scenario framework."
+        path="/docs"
+        type="article"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'TechArticle',
+          headline: 'WattLog Chapter 3 — Design and Development Methodology',
+          description:
+            'Academic manuscript chapter detailing the architecture, data model, and computational methods behind WattLog.',
+          author: { '@type': 'Organization', name: 'Sustainable Campus Initiative' },
+        }}
+      />
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-foreground">Chapter 3 Documentation</h1>

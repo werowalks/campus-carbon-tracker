@@ -22,10 +22,16 @@ import {
   CAMPUS_DEVICE_CATEGORIES,
   getDevicesByCategory,
 } from '@/data/campusDevices';
+import SEO from '@/components/SEO';
 
 export default function About() {
   return (
     <div className="min-h-screen hero-gradient">
+      <SEO
+        title="About WattLog — Methodology & Device Wattage Sources"
+        description="How WattLog computes campus energy use and CO₂ emissions, with device wattages sourced from DOE Philippines, Meralco, and IGES."
+        path="/about"
+      />
       {/* Header */}
       <header className="container py-6 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">

@@ -1,0 +1,17 @@
+# WattLog
+
+> WattLog is a Sustainable Campus Initiative dashboard that helps universities track real-time energy consumption and carbon emissions across campus devices.
+
+WattLog lets campus members log device usage (wattage × duration), then computes kilowatt-hours and CO₂ emissions using verified Philippine grid factors (DOE / IGES). The platform surfaces analytics, predictive scenarios, and exportable reports to support evidence-based sustainability decisions.
+
+## Pages
+
+- [Home](/): Overview of WattLog and key features.
+- [About](/about): Mission, calculation methodology, and device wattage sources.
+- [Demo](/demo): Interactive walkthrough of the dashboard and logging flow.
+- [Documentation](/docs): Chapter 3 — Design and Development Methodology (academic manuscript).
+- [Contact](/contact): Reach the WattLog team.
+
+## Optional
+
+- [Sign In](/login): Member authentication.

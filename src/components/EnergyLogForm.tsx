@@ -32,6 +32,7 @@ interface DeviceEntry {
 export default function EnergyLogForm() {
   const { user } = useAuth();
   const { addLog, logs, deleteLog } = useEnergy();
+  const { devices: catalogDevices, categoryWattage, emissionFactor, getDevicesByCategory, getDeviceByName } = useDevices();
   const [editingLog, setEditingLog] = useState<typeof logs[0] | null>(null);
   
   const [devices, setDevices] = useState<DeviceEntry[]>([

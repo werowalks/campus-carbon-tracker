@@ -82,7 +82,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const carbonEmission = calculateCarbonEmission(logData.wattage, logData.duration);
+    const carbonEmission = calculateCarbonEmission(logData.wattage, logData.duration, emissionFactor);
 
     const { data, error } = await supabase
       .from('energy_logs')

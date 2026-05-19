@@ -108,7 +108,7 @@ export default function AdminPanel() {
         const userRole = roles?.find(r => r.user_id === profile.user_id);
         return {
           ...profile,
-          role: (userRole?.role as 'admin' | 'user') || 'user',
+          role: (userRole?.role as Member['role']) || 'user',
         };
       });
 

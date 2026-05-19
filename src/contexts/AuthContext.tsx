@@ -191,7 +191,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profile,
         isAuthenticated: !!user, 
         isLoading, 
-        isAdmin: profile?.role === 'admin',
+        isAdmin: profile?.role === 'admin' || profile?.role === 'super_admin',
+        isSuperAdmin: profile?.role === 'super_admin',
         login, 
         register, 
         logout 

@@ -24,10 +24,11 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Download, Search, Filter, Shield, Trash2, FileSpreadsheet, Calendar, Users, Eye, BarChart3, UserCog, FlaskConical, Mail } from 'lucide-react';
+import { Download, Search, Filter, Shield, Trash2, FileSpreadsheet, Calendar, Users, Eye, BarChart3, UserCog, FlaskConical, Mail, Cpu } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import ScenarioSimulation from './ScenarioSimulation';
+import DeviceCatalogPanel from './DeviceCatalogPanel';
 
 interface Member {
   user_id: string;

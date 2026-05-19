@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnergy } from '@/contexts/EnergyContext';
+import { useDevices } from '@/contexts/DevicesContext';
 import { TIME_INTERVALS, calculateCarbonEmission, calculateEnergyKWh } from '@/types';
-import { CAMPUS_DEVICE_CATEGORIES, CATEGORY_WATTAGE, getDevicesByCategory, CAMPUS_DEVICES } from '@/data/campusDevices';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

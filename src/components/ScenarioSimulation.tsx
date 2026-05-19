@@ -20,6 +20,7 @@ const RENEWABLE_EMISSION_FACTOR = 0.4;
 
 export default function ScenarioSimulation() {
   const { getAllLogs } = useEnergy();
+  const { emissionFactor: CARBON_EMISSION_FACTOR } = useDevices();
   const logs = getAllLogs();
 
   const [reduceElectricity, setReduceElectricity] = useState(false);

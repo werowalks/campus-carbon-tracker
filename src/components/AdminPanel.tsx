@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnergy } from '@/contexts/EnergyContext';
 import { calculateEnergyKWh } from '@/types';
-import { CAMPUS_DEVICE_CATEGORIES } from '@/data/campusDevices';
+import { useDevices } from '@/contexts/DevicesContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

@@ -737,7 +737,7 @@ export default function AdminPanel() {
                   </SelectTrigger>
                   <SelectContent className="bg-popover z-50">
                     <SelectItem value="all">All Categories</SelectItem>
-                    {CAMPUS_DEVICE_CATEGORIES.map(cat => (
+                    {deviceCategories.map(cat => (
                       <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                     ))}
                   </SelectContent>

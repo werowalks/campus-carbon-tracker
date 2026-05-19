@@ -199,7 +199,7 @@ export default function EnergyLogForm() {
                         <div className="space-y-2">
                           <Label>Device *</Label>
                           <DeviceCombobox
-                            devices={CAMPUS_DEVICES}
+                            devices={catalogDevices}
                             value={device.deviceName}
                             onValueChange={(value) => updateDevice(device.id, 'deviceName', value)}
                             placeholder="Search devices..."

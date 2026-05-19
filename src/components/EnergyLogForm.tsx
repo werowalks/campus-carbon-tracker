@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnergy } from '@/contexts/EnergyContext';
+import { useDevices } from '@/contexts/DevicesContext';
 import { TIME_INTERVALS, calculateCarbonEmission, calculateEnergyKWh } from '@/types';
-import { CAMPUS_DEVICE_CATEGORIES, CATEGORY_WATTAGE, getDevicesByCategory, CAMPUS_DEVICES } from '@/data/campusDevices';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +32,7 @@ interface DeviceEntry {
 export default function EnergyLogForm() {
   const { user } = useAuth();
   const { addLog, logs, deleteLog } = useEnergy();
+  const { devices: catalogDevices, categoryWattage, emissionFactor, getDevicesByCategory, getDeviceByName } = useDevices();
   const [editingLog, setEditingLog] = useState<typeof logs[0] | null>(null);
   
   const [devices, setDevices] = useState<DeviceEntry[]>([
@@ -58,7 +59,7 @@ export default function EnergyLogForm() {
 
         // Auto-fill category and wattage when device is selected
         if (field === 'deviceName') {
-          const selectedDevice = CAMPUS_DEVICES.find(dev => dev.name === value);
+          const selectedDevice = getDeviceByName(value);
           if (selectedDevice) {
             updated.category = selectedDevice.category;
             updated.wattage = selectedDevice.wattage.toString();
@@ -67,12 +68,12 @@ export default function EnergyLogForm() {
 
         // Auto-fill wattage when category is manually changed; clear device if it no longer matches
         if (field === 'category') {
-          const stillValid = CAMPUS_DEVICES.find(
+          const stillValid = catalogDevices.find(
             dev => dev.name === d.deviceName && dev.category === value
           );
           if (!stillValid) {
             updated.deviceName = '';
-            updated.wattage = (CATEGORY_WATTAGE[value] || 100).toString();
+            updated.wattage = (categoryWattage[value] || 100).toString();
           }
         }
 
@@ -142,7 +143,7 @@ export default function EnergyLogForm() {
 
     return {
       energy: calculateEnergyKWh(wattage, duration),
-      carbon: calculateCarbonEmission(wattage, duration),
+      carbon: calculateCarbonEmission(wattage, duration, emissionFactor),
     };
   };
 
@@ -198,7 +199,7 @@ export default function EnergyLogForm() {
                         <div className="space-y-2">
                           <Label>Device *</Label>
                           <DeviceCombobox
-                            devices={CAMPUS_DEVICES}
+                            devices={catalogDevices}
                             value={device.deviceName}
                             onValueChange={(value) => updateDevice(device.id, 'deviceName', value)}
                             placeholder="Search devices..."

@@ -44,12 +44,18 @@ export const TIME_INTERVALS = [
   { value: 0, label: 'Custom' },
 ];
 
-// Carbon emission factor (kg CO2 per kWh) - Philippines grid average
+// Default carbon emission factor (kg CO2 per kWh) - Philippines grid average (DOE).
+// The active factor is sourced from the `emission_factors` table at runtime
+// via DevicesContext / EnergyContext; this remains as a fallback for static contexts.
 export const CARBON_EMISSION_FACTOR = 0.7;
 
-export function calculateCarbonEmission(wattage: number, durationMinutes: number): number {
+export function calculateCarbonEmission(
+  wattage: number,
+  durationMinutes: number,
+  factor: number = CARBON_EMISSION_FACTOR,
+): number {
   const energyKWh = (wattage * durationMinutes) / (1000 * 60);
-  return energyKWh * CARBON_EMISSION_FACTOR;
+  return energyKWh * factor;
 }
 
 export function calculateEnergyKWh(wattage: number, durationMinutes: number): number {

@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnergy } from '@/contexts/EnergyContext';
 import { calculateEnergyKWh } from '@/types';
-import { CAMPUS_DEVICE_CATEGORIES } from '@/data/campusDevices';
+import { useDevices } from '@/contexts/DevicesContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,10 +24,11 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Download, Search, Filter, Shield, Trash2, FileSpreadsheet, Calendar, Users, Eye, BarChart3, UserCog, FlaskConical, Mail } from 'lucide-react';
+import { Download, Search, Filter, Shield, Trash2, FileSpreadsheet, Calendar, Users, Eye, BarChart3, UserCog, FlaskConical, Mail, Cpu } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import ScenarioSimulation from './ScenarioSimulation';
+import DeviceCatalogPanel from './DeviceCatalogPanel';
 
 interface Member {
   user_id: string;
@@ -35,7 +36,7 @@ interface Member {
   email: string;
   avatar_url: string | null;
   created_at: string;
-  role: 'admin' | 'user';
+  role: 'super_admin' | 'admin' | 'user';
 }
 
 interface SiteVisitStats {
@@ -48,8 +49,9 @@ interface SiteVisitStats {
 }
 
 export default function AdminPanel() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isSuperAdmin } = useAuth();
   const { getAllLogs, deleteLog, getStats } = useEnergy();
+  const { categories: deviceCategories } = useDevices();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -106,7 +108,7 @@ export default function AdminPanel() {
         const userRole = roles?.find(r => r.user_id === profile.user_id);
         return {
           ...profile,
-          role: (userRole?.role as 'admin' | 'user') || 'user',
+          role: (userRole?.role as Member['role']) || 'user',
         };
       });
 
@@ -531,7 +533,7 @@ export default function AdminPanel() {
 
       {/* Tabs for different sections */}
       <Tabs defaultValue="members" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
+        <TabsList className={`grid w-full ${isSuperAdmin ? 'grid-cols-5' : 'grid-cols-4'} lg:w-auto lg:inline-flex`}>
           <TabsTrigger value="members" className="gap-2">
             <Users className="w-4 h-4" />
             Members
@@ -548,6 +550,12 @@ export default function AdminPanel() {
             <FlaskConical className="w-4 h-4" />
             Predictive
           </TabsTrigger>
+          {isSuperAdmin && (
+            <TabsTrigger value="catalog" className="gap-2">
+              <Cpu className="w-4 h-4" />
+              Device Catalog
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* Members Tab */}
@@ -736,7 +744,7 @@ export default function AdminPanel() {
                   </SelectTrigger>
                   <SelectContent className="bg-popover z-50">
                     <SelectItem value="all">All Categories</SelectItem>
-                    {CAMPUS_DEVICE_CATEGORIES.map(cat => (
+                    {deviceCategories.map(cat => (
                       <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                     ))}
                   </SelectContent>
@@ -824,6 +832,12 @@ export default function AdminPanel() {
         <TabsContent value="simulation">
           <ScenarioSimulation />
         </TabsContent>
+        {/* Device Catalog Tab (super_admin only) */}
+        {isSuperAdmin && (
+          <TabsContent value="catalog">
+            <DeviceCatalogPanel />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

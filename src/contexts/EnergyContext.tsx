@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { useDevices } from './DevicesContext';
 import { DashboardStats, calculateCarbonEmission, calculateEnergyKWh } from '@/types';
 
 export interface EnergyLog {
@@ -31,6 +32,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
   const [logs, setLogs] = useState<EnergyLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user, isAdmin } = useAuth();
+  const { emissionFactor } = useDevices();
 
   const fetchLogs = useCallback(async () => {
     if (!user) {
@@ -80,7 +82,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const carbonEmission = calculateCarbonEmission(logData.wattage, logData.duration);
+    const carbonEmission = calculateCarbonEmission(logData.wattage, logData.duration, emissionFactor);
 
     const { data, error } = await supabase
       .from('energy_logs')
@@ -122,7 +124,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
 
     const newWattage = updates.wattage ?? existing.wattage;
     const newDuration = updates.duration ?? existing.duration;
-    const newCarbonEmission = calculateCarbonEmission(newWattage, newDuration);
+    const newCarbonEmission = calculateCarbonEmission(newWattage, newDuration, emissionFactor);
 
     const { error } = await supabase
       .from('energy_logs')

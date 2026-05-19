@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DeviceCombobox } from '@/components/DeviceCombobox';
-import { CAMPUS_DEVICE_CATEGORIES, CATEGORY_WATTAGE, getDevicesByCategory } from '@/data/campusDevices';
+import { useDevices } from '@/contexts/DevicesContext';
 import { TIME_INTERVALS, calculateCarbonEmission, calculateEnergyKWh } from '@/types';
 import { toast } from 'sonner';
 import { Zap, Clock } from 'lucide-react';
@@ -20,6 +20,7 @@ interface EditEnergyLogDialogProps {
 
 export default function EditEnergyLogDialog({ log, open, onOpenChange }: EditEnergyLogDialogProps) {
   const { updateLog } = useEnergy();
+  const { categories, categoryWattage, emissionFactor, getDevicesByCategory } = useDevices();
   const [category, setCategory] = useState(log.category);
   const [deviceName, setDeviceName] = useState(log.device_name);
   const [wattage, setWattage] = useState(log.wattage.toString());
@@ -33,7 +34,7 @@ export default function EditEnergyLogDialog({ log, open, onOpenChange }: EditEne
 
   const handleCategoryChange = (value: string) => {
     setCategory(value);
-    setWattage((CATEGORY_WATTAGE[value] || 100).toString());
+    setWattage((categoryWattage[value] || 100).toString());
     setDeviceName('');
   };
 
@@ -52,7 +53,7 @@ export default function EditEnergyLogDialog({ log, open, onOpenChange }: EditEne
   const parsedWattage = parseInt(wattage) || 0;
   const preview = parsedDuration > 0 && parsedWattage > 0 ? {
     energy: calculateEnergyKWh(parsedWattage, parsedDuration),
-    carbon: calculateCarbonEmission(parsedWattage, parsedDuration),
+    carbon: calculateCarbonEmission(parsedWattage, parsedDuration, emissionFactor),
   } : null;
 
   const handleSave = async () => {
@@ -96,7 +97,7 @@ export default function EditEnergyLogDialog({ log, open, onOpenChange }: EditEne
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent className="bg-popover z-50">
-                {CAMPUS_DEVICE_CATEGORIES.map((cat) => (
+                {categories.map((cat) => (
                   <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                 ))}
               </SelectContent>

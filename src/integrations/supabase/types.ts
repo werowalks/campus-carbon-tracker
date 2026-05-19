@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      device_audit_log: {
+        Row: {
+          action: string
+          changed_at: string
+          changed_by: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+        }
+        Insert: {
+          action: string
+          changed_at?: string
+          changed_by: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+        }
+        Update: {
+          action?: string
+          changed_at?: string
+          changed_by?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+        }
+        Relationships: []
+      }
+      devices: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          name: string
+          source: string | null
+          updated_at: string
+          updated_by: string | null
+          wattage: number
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          name: string
+          source?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          wattage: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          name?: string
+          source?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          wattage?: number
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -98,6 +164,42 @@ export type Database = {
           id?: string
           token?: string
           used_at?: string | null
+        }
+        Relationships: []
+      }
+      emission_factors: {
+        Row: {
+          created_at: string
+          effective_date: string
+          factor_kg_per_kwh: number
+          id: string
+          is_active: boolean
+          notes: string | null
+          source: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          effective_date: string
+          factor_kg_per_kwh: number
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          source: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          effective_date?: string
+          factor_kg_per_kwh?: number
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          source?: string
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }

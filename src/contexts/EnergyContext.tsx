@@ -32,6 +32,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
   const [logs, setLogs] = useState<EnergyLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user, isAdmin } = useAuth();
+  const { emissionFactor } = useDevices();
 
   const fetchLogs = useCallback(async () => {
     if (!user) {

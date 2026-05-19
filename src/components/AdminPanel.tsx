@@ -48,8 +48,9 @@ interface SiteVisitStats {
 }
 
 export default function AdminPanel() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isSuperAdmin } = useAuth();
   const { getAllLogs, deleteLog, getStats } = useEnergy();
+  const { categories: deviceCategories } = useDevices();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');

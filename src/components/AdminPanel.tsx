@@ -595,26 +595,34 @@ export default function AdminPanel() {
                           </TableCell>
                           <TableCell>
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              member.role === 'admin' 
-                                ? 'bg-primary/10 text-primary' 
-                                : 'bg-muted text-muted-foreground'
+                              member.role === 'super_admin'
+                                ? 'bg-primary text-primary-foreground'
+                                : member.role === 'admin'
+                                  ? 'bg-primary/10 text-primary'
+                                  : 'bg-muted text-muted-foreground'
                             }`}>
-                              {member.role === 'admin' ? '👑 Admin' : '👤 User'}
+                              {member.role === 'super_admin' ? '⭐ Super Admin' : member.role === 'admin' ? '👑 Admin' : '👤 User'}
                             </span>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Select
                                 value={member.role}
-                                onValueChange={(value: 'admin' | 'user') => handleRoleChange(member.user_id, value)}
-                                disabled={updatingRole === member.user_id}
+                                onValueChange={(value: 'super_admin' | 'admin' | 'user') => handleRoleChange(member.user_id, value)}
+                                disabled={
+                                  updatingRole === member.user_id ||
+                                  (!isSuperAdmin && member.role === 'super_admin')
+                                }
                               >
-                                <SelectTrigger className="w-28 h-8 text-xs">
+                                <SelectTrigger className="w-32 h-8 text-xs">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="user">User</SelectItem>
                                   <SelectItem value="admin">Admin</SelectItem>
+                                  {isSuperAdmin && (
+                                    <SelectItem value="super_admin">Super Admin</SelectItem>
+                                  )}
                                 </SelectContent>
                               </Select>
                               <Button

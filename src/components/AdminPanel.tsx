@@ -151,7 +151,7 @@ export default function AdminPanel() {
     }
   };
 
-  const handleRoleChange = async (userId: string, newRole: 'admin' | 'user') => {
+  const handleRoleChange = async (userId: string, newRole: 'super_admin' | 'admin' | 'user') => {
     try {
       setUpdatingRole(userId);
       
@@ -167,7 +167,7 @@ export default function AdminPanel() {
         m.user_id === userId ? { ...m, role: newRole } : m
       ));
 
-      toast.success(`Role updated to ${newRole}`);
+      toast.success(`Role updated to ${newRole.replace('_', ' ')}`);
     } catch (error) {
       console.error('Error updating role:', error);
       toast.error('Failed to update role');
@@ -595,26 +595,34 @@ export default function AdminPanel() {
                           </TableCell>
                           <TableCell>
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              member.role === 'admin' 
-                                ? 'bg-primary/10 text-primary' 
-                                : 'bg-muted text-muted-foreground'
+                              member.role === 'super_admin'
+                                ? 'bg-primary text-primary-foreground'
+                                : member.role === 'admin'
+                                  ? 'bg-primary/10 text-primary'
+                                  : 'bg-muted text-muted-foreground'
                             }`}>
-                              {member.role === 'admin' ? '👑 Admin' : '👤 User'}
+                              {member.role === 'super_admin' ? '⭐ Super Admin' : member.role === 'admin' ? '👑 Admin' : '👤 User'}
                             </span>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Select
                                 value={member.role}
-                                onValueChange={(value: 'admin' | 'user') => handleRoleChange(member.user_id, value)}
-                                disabled={updatingRole === member.user_id}
+                                onValueChange={(value: 'super_admin' | 'admin' | 'user') => handleRoleChange(member.user_id, value)}
+                                disabled={
+                                  updatingRole === member.user_id ||
+                                  (!isSuperAdmin && member.role === 'super_admin')
+                                }
                               >
-                                <SelectTrigger className="w-28 h-8 text-xs">
+                                <SelectTrigger className="w-32 h-8 text-xs">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="user">User</SelectItem>
                                   <SelectItem value="admin">Admin</SelectItem>
+                                  {isSuperAdmin && (
+                                    <SelectItem value="super_admin">Super Admin</SelectItem>
+                                  )}
                                 </SelectContent>
                               </Select>
                               <Button
@@ -687,6 +695,10 @@ export default function AdminPanel() {
                   <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                     <span className="text-muted-foreground">Administrators</span>
                     <span className="text-xl font-bold">{members.filter(m => m.role === 'admin').length}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                    <span className="text-muted-foreground">Super Admins</span>
+                    <span className="text-xl font-bold">{members.filter(m => m.role === 'super_admin').length}</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                     <span className="text-muted-foreground">Active Contributors</span>

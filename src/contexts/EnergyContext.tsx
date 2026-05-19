@@ -124,7 +124,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
 
     const newWattage = updates.wattage ?? existing.wattage;
     const newDuration = updates.duration ?? existing.duration;
-    const newCarbonEmission = calculateCarbonEmission(newWattage, newDuration);
+    const newCarbonEmission = calculateCarbonEmission(newWattage, newDuration, emissionFactor);
 
     const { error } = await supabase
       .from('energy_logs')

@@ -32,15 +32,18 @@ export interface DashboardStats {
 
 
 export const TIME_INTERVALS = [
-  { value: 15, label: '0.25 hours' },
-  { value: 30, label: '0.5 hours' },
-  { value: 45, label: '0.75 hours' },
   { value: 60, label: '1 hour' },
-  { value: 90, label: '1.5 hours' },
   { value: 120, label: '2 hours' },
   { value: 180, label: '3 hours' },
   { value: 240, label: '4 hours' },
+  { value: 300, label: '5 hours' },
+  { value: 360, label: '6 hours' },
+  { value: 420, label: '7 hours' },
   { value: 480, label: '8 hours' },
+  { value: 540, label: '9 hours' },
+  { value: 600, label: '10 hours' },
+  { value: 660, label: '11 hours' },
+  { value: 720, label: '12 hours' },
   { value: 0, label: 'Custom' },
 ];
 

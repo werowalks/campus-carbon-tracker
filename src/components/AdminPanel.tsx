@@ -363,7 +363,7 @@ export default function AdminPanel() {
     return `${firstNames} ${lastInitial}.`;
   };
 
-  const exportMembersCSV = () => {
+  const exportMembersCSV = async () => {
     const formatRole = (role: string): string => {
       return role
         .split('_')
@@ -371,12 +371,34 @@ export default function AdminPanel() {
         .join(' ');
     };
 
-    const headers = ['Name', 'Joined Date', 'Role'];
-    const rows = members.map(member => [
-      maskLastName(member.name),
-      format(new Date(member.created_at), 'yyyy-MM-dd'),
-      formatRole(member.role),
-    ]);
+    // Fetch last log timestamp per user
+    const lastLogByUser = new Map<string, string>();
+    try {
+      const { data: logs } = await supabase
+        .from('energy_logs')
+        .select('user_id, timestamp')
+        .order('timestamp', { ascending: false });
+      if (logs) {
+        for (const log of logs) {
+          if (!lastLogByUser.has(log.user_id)) {
+            lastLogByUser.set(log.user_id, log.timestamp);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch last log dates:', err);
+    }
+
+    const headers = ['Name', 'Joined Date', 'Role', 'Last Log Date'];
+    const rows = members.map(member => {
+      const last = lastLogByUser.get(member.user_id);
+      return [
+        maskLastName(member.name),
+        format(new Date(member.created_at), 'yyyy-MM-dd'),
+        formatRole(member.role),
+        last ? format(new Date(last), 'yyyy-MM-dd') : 'Never',
+      ];
+    });
 
     const csvContent = [
       headers.join(','),

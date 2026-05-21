@@ -36,7 +36,7 @@ export default function EnergyLogForm() {
   const [editingLog, setEditingLog] = useState<typeof logs[0] | null>(null);
   
   const [devices, setDevices] = useState<DeviceEntry[]>([
-    { id: '1', deviceName: '', category: '', wattage: '', timeInterval: '', customMinutes: '1' }
+    { id: '1', deviceName: '', category: '', wattage: '', timeInterval: '', customMinutes: '60' }
   ]);
 
   const addDevice = () => {

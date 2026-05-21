@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DeviceCombobox } from '@/components/DeviceCombobox';
 import EditEnergyLogDialog from '@/components/EditEnergyLogDialog';
+import LogHistoryDialog from '@/components/LogHistoryDialog';
+import { History } from 'lucide-react';
 import { toast } from 'sonner';
 import { 
   Zap, 
@@ -34,6 +36,7 @@ export default function EnergyLogForm() {
   const { addLog, logs, deleteLog } = useEnergy();
   const { devices: catalogDevices, categoryWattage, emissionFactor, getDevicesByCategory, getDeviceByName } = useDevices();
   const [editingLog, setEditingLog] = useState<typeof logs[0] | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
   
   const [devices, setDevices] = useState<DeviceEntry[]>([
     { id: '1', deviceName: '', category: '', wattage: '', timeInterval: '', customMinutes: '60' }
@@ -321,8 +324,17 @@ export default function EnergyLogForm() {
         {/* Recent Logs Sidebar */}
         <div>
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-lg">Recent Logs</CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={() => setHistoryOpen(true)}
+              >
+                <History className="w-3.5 h-3.5 mr-1" />
+                View All
+              </Button>
             </CardHeader>
             <CardContent>
               {recentLogs.length > 0 ? (
@@ -395,6 +407,8 @@ export default function EnergyLogForm() {
           onOpenChange={(open) => { if (!open) setEditingLog(null); }}
         />
       )}
+
+      <LogHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} />
     </div>
   );
 }

@@ -12,8 +12,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { TrendingDown, Leaf, Zap, FlaskConical, ArrowRight } from 'lucide-react';
+import { TrendingDown, Leaf, Zap, FlaskConical, ArrowRight, Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
 
 // Renewable grid emission factor (kg CO₂/kWh) — based on DOE PH targets
 const RENEWABLE_EMISSION_FACTOR = 0.4;
@@ -86,18 +94,128 @@ export default function ScenarioSimulation() {
 
   const anyActive = reduceElectricity || useRenewableGrid || (removeCategory && !!excludedCategory);
 
+  const activeScenarios = [
+    reduceElectricity && 'Reduce Electricity by 10%',
+    useRenewableGrid && `Switch to Renewable Grid (${RENEWABLE_EMISSION_FACTOR} kg CO₂/kWh)`,
+    removeCategory && excludedCategory && `Remove Category: ${excludedCategory}`,
+  ].filter(Boolean) as string[];
+
+  const exportTimestamp = () => {
+    const d = new Date();
+    return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}`;
+  };
+
+  const handleExportCSV = () => {
+    const rows: (string | number)[][] = [
+      ['WattLog — Predictive Modeling Export'],
+      ['Generated', new Date().toLocaleString()],
+      ['Logs Included (this month)', monthLogs.length],
+      ['Baseline Emission Factor (kg CO₂/kWh)', CARBON_EMISSION_FACTOR],
+      ['Renewable Emission Factor (kg CO₂/kWh)', RENEWABLE_EMISSION_FACTOR],
+      [],
+      ['Active Scenarios'],
+      ...(activeScenarios.length ? activeScenarios.map(s => [s]) : [['None']]),
+      [],
+      ['Metric', 'Baseline', 'Projected', 'Reduction (%)'],
+      [
+        'Energy (kWh)',
+        baseline.totalEnergy.toFixed(4),
+        (anyActive ? projected.totalEnergy : baseline.totalEnergy).toFixed(4),
+        anyActive ? energyReduction.toFixed(2) : '0.00',
+      ],
+      [
+        'CO₂ Emissions (kg)',
+        baseline.totalCarbon.toFixed(4),
+        (anyActive ? projected.totalCarbon : baseline.totalCarbon).toFixed(4),
+        anyActive ? carbonReduction.toFixed(2) : '0.00',
+      ],
+    ];
+    const csv = rows
+      .map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `wattlog-predictive-${exportTimestamp()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('CSV exported');
+  };
+
+  const handleExportPDF = () => {
+    const win = window.open('', '_blank');
+    if (!win) {
+      toast.error('Please allow pop-ups to export PDF');
+      return;
+    }
+    const scenariosHtml = activeScenarios.length
+      ? `<ul>${activeScenarios.map(s => `<li>${s}</li>`).join('')}</ul>`
+      : '<p><em>No scenarios active — showing baseline only.</em></p>';
+    win.document.write(`<!doctype html><html><head><title>WattLog — Predictive Modeling Report</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; padding: 32px; color: #111; max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 15px; margin: 24px 0 8px; color: #166534; }
+  .meta { color: #666; font-size: 12px; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+  th, td { border: 1px solid #ddd; padding: 8px 10px; text-align: left; }
+  th { background: #f0fdf4; }
+  .reduction { color: #16a34a; font-weight: 600; }
+</style></head><body>
+<h1>WattLog — Predictive Modeling Report</h1>
+<div class="meta">Generated ${new Date().toLocaleString()} · ${monthLogs.length} logs this month</div>
+<h2>Active Scenarios</h2>
+${scenariosHtml}
+<h2>Results</h2>
+<table>
+  <thead><tr><th>Metric</th><th>Baseline</th><th>Projected</th><th>Reduction</th></tr></thead>
+  <tbody>
+    <tr><td>Energy (kWh)</td><td>${baseline.totalEnergy.toFixed(2)}</td><td>${(anyActive ? projected.totalEnergy : baseline.totalEnergy).toFixed(2)}</td><td class="reduction">${anyActive ? energyReduction.toFixed(1) + '%' : '—'}</td></tr>
+    <tr><td>CO₂ Emissions (kg)</td><td>${baseline.totalCarbon.toFixed(4)}</td><td>${(anyActive ? projected.totalCarbon : baseline.totalCarbon).toFixed(4)}</td><td class="reduction">${anyActive ? carbonReduction.toFixed(1) + '%' : '—'}</td></tr>
+  </tbody>
+</table>
+<h2>Methodology</h2>
+<p style="font-size:12px;color:#444;">Energy (kWh) = (Wattage × Duration min) ÷ 60,000. CO₂ = Energy × emission factor (${CARBON_EMISSION_FACTOR} kg CO₂/kWh baseline DOE PH; ${RENEWABLE_EMISSION_FACTOR} renewable grid). Reduction = (Baseline − Projected) ÷ Baseline × 100.</p>
+<script>window.onload = () => { window.print(); }</script>
+</body></html>`);
+    win.document.close();
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FlaskConical className="w-5 h-5 text-primary" />
-            Scenario Simulation — Predictive Modeling
-          </CardTitle>
-          <CardDescription>
-            Toggle scenarios below to project how CO₂ emissions change under different conditions.
-            Based on this month's logged data.
-          </CardDescription>
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <FlaskConical className="w-5 h-5 text-primary" />
+                Scenario Simulation — Predictive Modeling
+              </CardTitle>
+              <CardDescription className="mt-1.5">
+                Toggle scenarios below to project how CO₂ emissions change under different conditions.
+                Based on this month's logged data.
+              </CardDescription>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" disabled={monthLogs.length === 0}>
+                  <Download className="w-4 h-4" />
+                  Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-popover z-50">
+                <DropdownMenuItem onClick={handleExportCSV}>
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportPDF}>
+                  <FileText className="w-4 h-4 mr-2" />
+                  Export as PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Scenario Toggles */}

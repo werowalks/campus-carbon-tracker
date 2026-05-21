@@ -98,8 +98,8 @@ export default function EnergyLogForm() {
         continue;
       }
 
-      const duration = device.timeInterval === '0' 
-        ? parseInt(device.customMinutes) 
+      const duration = device.timeInterval === '0'
+        ? (parseInt(device.customHours) || 0) * 60
         : parseInt(device.timeInterval);
 
       if (!duration || duration <= 0) {
@@ -107,7 +107,7 @@ export default function EnergyLogForm() {
       }
 
       if (duration > 1440) {
-        toast.error(`Device "${device.deviceName}": Duration cannot exceed 24 hours (1440 minutes)`);
+        toast.error(`Device "${device.deviceName}": Duration cannot exceed 24 hours`);
         return;
       }
 

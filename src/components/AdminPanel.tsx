@@ -364,11 +364,18 @@ export default function AdminPanel() {
   };
 
   const exportMembersCSV = () => {
+    const formatRole = (role: string): string => {
+      return role
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    };
+
     const headers = ['Name', 'Joined Date', 'Role'];
     const rows = members.map(member => [
       maskLastName(member.name),
       format(new Date(member.created_at), 'yyyy-MM-dd'),
-      member.role,
+      formatRole(member.role),
     ]);
 
     const csvContent = [

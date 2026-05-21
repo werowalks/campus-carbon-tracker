@@ -355,6 +355,35 @@ export default function AdminPanel() {
     }
   };
 
+  const maskLastName = (fullName: string): string => {
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0];
+    const firstNames = parts.slice(0, -1).join(' ');
+    const lastInitial = parts[parts.length - 1][0];
+    return `${firstNames} ${lastInitial}.`;
+  };
+
+  const exportMembersCSV = () => {
+    const headers = ['Name', 'Joined Date', 'Role'];
+    const rows = members.map(member => [
+      maskLastName(member.name),
+      format(new Date(member.created_at), 'yyyy-MM-dd'),
+      member.role,
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    downloadFile(
+      csvContent,
+      `members-export-${format(new Date(), 'yyyy-MM-dd')}.csv`,
+      'text/csv;charset=utf-8;'
+    );
+    toast.success(`Exported ${members.length} members to CSV`);
+  };
+
   const exportContactAnalyticsExcel = async () => {
     try {
       const { data, error } = await supabase

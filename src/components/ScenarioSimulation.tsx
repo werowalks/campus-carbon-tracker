@@ -12,8 +12,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { TrendingDown, Leaf, Zap, FlaskConical, ArrowRight } from 'lucide-react';
+import { TrendingDown, Leaf, Zap, FlaskConical, ArrowRight, Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
 
 // Renewable grid emission factor (kg CO₂/kWh) — based on DOE PH targets
 const RENEWABLE_EMISSION_FACTOR = 0.4;

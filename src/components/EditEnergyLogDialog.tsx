@@ -24,9 +24,7 @@ export default function EditEnergyLogDialog({ log, open, onOpenChange }: EditEne
   const [category, setCategory] = useState(log.category);
   const [deviceName, setDeviceName] = useState(log.device_name);
   const [wattage, setWattage] = useState(log.wattage.toString());
-  const [duration, setDuration] = useState(
-    TIME_INTERVALS.find(t => t.value === log.duration) ? log.duration.toString() : (log.duration / 60).toString()
-  );
+  const [duration, setDuration] = useState(log.duration.toString());
   const [timeInterval, setTimeInterval] = useState(
     TIME_INTERVALS.find(t => t.value === log.duration) ? log.duration.toString() : '0'
   );
@@ -49,11 +47,11 @@ export default function EditEnergyLogDialog({ log, open, onOpenChange }: EditEne
   const handleTimeIntervalChange = (value: string) => {
     setTimeInterval(value);
     if (value !== '0') setDuration(value);
-    else setDuration('1');
+    else setDuration('60');
   };
 
   const rawDuration = parseInt(duration) || 0;
-  const parsedDuration = timeInterval === '0' ? rawDuration * 60 : rawDuration;
+  const parsedDuration = rawDuration;
   const parsedWattage = parseInt(wattage) || 0;
   const preview = parsedDuration > 0 && parsedWattage > 0 ? {
     energy: calculateEnergyKWh(parsedWattage, parsedDuration),
@@ -150,26 +148,28 @@ export default function EditEnergyLogDialog({ log, open, onOpenChange }: EditEne
 
           {timeInterval === '0' && (
             <div className="space-y-2">
-              <Label>Custom Duration (hours)</Label>
+              <Label>Custom Duration (minutes)</Label>
               <div className="relative">
                 <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="number"
                   className="pl-10"
                   min={1}
-                  max={24}
+                  max={1440}
                   value={duration}
                   onChange={(e) => {
                     const val = parseInt(e.target.value);
-                    if (val > 24) {
-                      toast.error('Duration cannot exceed 24 hours');
+                    if (val > 1440) {
+                      toast.error('Duration cannot exceed 1440 minutes (24 hours)');
                       return;
                     }
                     setDuration(e.target.value);
                   }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground">Maximum: 24 hours</p>
+              <p className="text-xs text-muted-foreground">
+                ≈ {(rawDuration / 60).toFixed(2)} hours • Maximum: 1440 minutes (24 hours)
+              </p>
             </div>
           )}
 

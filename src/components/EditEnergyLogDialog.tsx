@@ -148,26 +148,28 @@ export default function EditEnergyLogDialog({ log, open, onOpenChange }: EditEne
 
           {timeInterval === '0' && (
             <div className="space-y-2">
-              <Label>Custom Duration (hours)</Label>
+              <Label>Custom Duration (minutes)</Label>
               <div className="relative">
                 <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="number"
                   className="pl-10"
                   min={1}
-                  max={24}
+                  max={1440}
                   value={duration}
                   onChange={(e) => {
                     const val = parseInt(e.target.value);
-                    if (val > 24) {
-                      toast.error('Duration cannot exceed 24 hours');
+                    if (val > 1440) {
+                      toast.error('Duration cannot exceed 1440 minutes (24 hours)');
                       return;
                     }
                     setDuration(e.target.value);
                   }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground">Maximum: 24 hours</p>
+              <p className="text-xs text-muted-foreground">
+                ≈ {(rawDuration / 60).toFixed(2)} hours • Maximum: 1440 minutes (24 hours)
+              </p>
             </div>
           )}
 

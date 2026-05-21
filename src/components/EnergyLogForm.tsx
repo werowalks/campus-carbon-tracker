@@ -26,7 +26,7 @@ interface DeviceEntry {
   category: string;
   wattage: string;
   timeInterval: string;
-  customMinutes: string;
+  customHours: string;
 }
 
 export default function EnergyLogForm() {
@@ -36,13 +36,13 @@ export default function EnergyLogForm() {
   const [editingLog, setEditingLog] = useState<typeof logs[0] | null>(null);
   
   const [devices, setDevices] = useState<DeviceEntry[]>([
-    { id: '1', deviceName: '', category: '', wattage: '', timeInterval: '', customMinutes: '' }
+    { id: '1', deviceName: '', category: '', wattage: '', timeInterval: '', customHours: '1' }
   ]);
 
   const addDevice = () => {
     setDevices([
       ...devices,
-      { id: Date.now().toString(), deviceName: '', category: '', wattage: '', timeInterval: '', customMinutes: '' }
+      { id: Date.now().toString(), deviceName: '', category: '', wattage: '', timeInterval: '', customHours: '1' }
     ]);
   };
 

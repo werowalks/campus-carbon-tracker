@@ -99,7 +99,7 @@ export default function EnergyLogForm() {
       }
 
       const duration = device.timeInterval === '0'
-        ? (parseInt(device.customMinutes) || 0) * 60
+        ? (parseInt(device.customMinutes) || 0)
         : parseInt(device.timeInterval);
 
       if (!duration || duration <= 0) {

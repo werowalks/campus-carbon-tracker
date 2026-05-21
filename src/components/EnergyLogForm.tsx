@@ -407,6 +407,8 @@ export default function EnergyLogForm() {
           onOpenChange={(open) => { if (!open) setEditingLog(null); }}
         />
       )}
+
+      <LogHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} />
     </div>
   );
 }

@@ -591,12 +591,18 @@ export default function AdminPanel() {
         <TabsContent value="members">
           <Card>
             <CardHeader>
-              <div className="flex items-center gap-2">
-                <UserCog className="w-5 h-5 text-primary" />
-                <div>
-                  <CardTitle>Member Management</CardTitle>
-                  <CardDescription>View all members and manage their roles</CardDescription>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <UserCog className="w-5 h-5 text-primary" />
+                  <div>
+                    <CardTitle>Member Management</CardTitle>
+                    <CardDescription>View all members and manage their roles</CardDescription>
+                  </div>
                 </div>
+                <Button variant="outline" onClick={exportMembersCSV} size="sm" className="gap-2">
+                  <Download className="w-4 h-4" />
+                  Export Members
+                </Button>
               </div>
             </CardHeader>
             <CardContent>

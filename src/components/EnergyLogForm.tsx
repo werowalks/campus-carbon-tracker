@@ -127,15 +127,15 @@ export default function EnergyLogForm() {
 
     if (successCount > 0) {
       toast.success(`${successCount} device${successCount > 1 ? 's' : ''} logged successfully!`);
-      setDevices([{ id: '1', deviceName: '', category: '', wattage: '', timeInterval: '', customMinutes: '' }]);
+      setDevices([{ id: '1', deviceName: '', category: '', wattage: '', timeInterval: '', customHours: '1' }]);
     } else {
       toast.error('Please fill in all required fields');
     }
   };
 
   const calculatePreview = (device: DeviceEntry) => {
-    const duration = device.timeInterval === '0' 
-      ? parseInt(device.customMinutes) || 0
+    const duration = device.timeInterval === '0'
+      ? (parseInt(device.customHours) || 0) * 60
       : parseInt(device.timeInterval) || 0;
     const wattage = parseInt(device.wattage) || 0;
 
@@ -252,27 +252,27 @@ export default function EnergyLogForm() {
 
                         {device.timeInterval === '0' && (
                           <div className="space-y-2 sm:col-span-2">
-                            <Label>Custom Duration (minutes)</Label>
+                            <Label>Custom Duration (hours)</Label>
                             <div className="relative">
                               <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                               <Input
                                 type="number"
-                                placeholder="Enter minutes (max 1440)"
+                                placeholder="Enter hours (max 24)"
                                 className="pl-10"
                                 min={1}
-                                max={1440}
-                                value={device.customMinutes}
+                                max={24}
+                                value={device.customHours}
                                 onChange={(e) => {
                                   const val = parseInt(e.target.value);
-                                  if (val > 1440) {
-                                    toast.error('Duration cannot exceed 24 hours (1440 minutes)');
+                                  if (val > 24) {
+                                    toast.error('Duration cannot exceed 24 hours');
                                     return;
                                   }
-                                  updateDevice(device.id, 'customMinutes', e.target.value);
+                                  updateDevice(device.id, 'customHours', e.target.value);
                                 }}
                               />
                             </div>
-                            <p className="text-xs text-muted-foreground">Maximum: 1440 minutes (24 hours)</p>
+                            <p className="text-xs text-muted-foreground">Maximum: 24 hours</p>
                           </div>
                         )}
                       </div>

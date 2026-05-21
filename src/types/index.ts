@@ -32,6 +32,7 @@ export interface DashboardStats {
 
 
 export const TIME_INTERVALS = [
+  { value: 0, label: 'Custom' },
   { value: 60, label: '1 hour' },
   { value: 120, label: '2 hours' },
   { value: 180, label: '3 hours' },
@@ -44,7 +45,6 @@ export const TIME_INTERVALS = [
   { value: 600, label: '10 hours' },
   { value: 660, label: '11 hours' },
   { value: 720, label: '12 hours' },
-  { value: 0, label: 'Custom' },
 ];
 
 // Default carbon emission factor (kg CO2 per kWh) - Philippines grid average (DOE).

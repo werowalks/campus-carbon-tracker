@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DeviceCombobox } from '@/components/DeviceCombobox';
 import EditEnergyLogDialog from '@/components/EditEnergyLogDialog';
+import LogHistoryDialog from '@/components/LogHistoryDialog';
+import { History } from 'lucide-react';
 import { toast } from 'sonner';
 import { 
   Zap, 

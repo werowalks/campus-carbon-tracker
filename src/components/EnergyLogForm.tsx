@@ -127,7 +127,7 @@ export default function EnergyLogForm() {
 
     if (successCount > 0) {
       toast.success(`${successCount} device${successCount > 1 ? 's' : ''} logged successfully!`);
-      setDevices([{ id: '1', deviceName: '', category: '', wattage: '', timeInterval: '', customMinutes: '1' }]);
+      setDevices([{ id: '1', deviceName: '', category: '', wattage: '', timeInterval: '', customMinutes: '60' }]);
     } else {
       toast.error('Please fill in all required fields');
     }

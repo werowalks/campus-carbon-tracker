@@ -135,7 +135,7 @@ export default function EnergyLogForm() {
 
   const calculatePreview = (device: DeviceEntry) => {
     const duration = device.timeInterval === '0'
-      ? (parseInt(device.customMinutes) || 0) * 60
+      ? (parseInt(device.customMinutes) || 0)
       : parseInt(device.timeInterval) || 0;
     const wattage = parseInt(device.wattage) || 0;
 

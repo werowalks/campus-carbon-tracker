@@ -45,6 +45,18 @@ export const TIME_INTERVALS = [
   { value: 600, label: '10 hours' },
   { value: 660, label: '11 hours' },
   { value: 720, label: '12 hours' },
+  { value: 780, label: '13 hours' },
+  { value: 840, label: '14 hours' },
+  { value: 900, label: '15 hours' },
+  { value: 960, label: '16 hours' },
+  { value: 1020, label: '17 hours' },
+  { value: 1080, label: '18 hours' },
+  { value: 1140, label: '19 hours' },
+  { value: 1200, label: '20 hours' },
+  { value: 1260, label: '21 hours' },
+  { value: 1320, label: '22 hours' },
+  { value: 1380, label: '23 hours' },
+  { value: 1440, label: '24 hours' },
 ];
 
 // Default carbon emission factor (kg CO2 per kWh) - Philippines grid average (DOE).

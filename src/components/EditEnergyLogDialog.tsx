@@ -47,11 +47,11 @@ export default function EditEnergyLogDialog({ log, open, onOpenChange }: EditEne
   const handleTimeIntervalChange = (value: string) => {
     setTimeInterval(value);
     if (value !== '0') setDuration(value);
-    else setDuration('1');
+    else setDuration('60');
   };
 
   const rawDuration = parseInt(duration) || 0;
-  const parsedDuration = timeInterval === '0' ? rawDuration * 60 : rawDuration;
+  const parsedDuration = rawDuration;
   const parsedWattage = parseInt(wattage) || 0;
   const preview = parsedDuration > 0 && parsedWattage > 0 ? {
     energy: calculateEnergyKWh(parsedWattage, parsedDuration),

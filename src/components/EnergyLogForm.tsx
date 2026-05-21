@@ -42,7 +42,7 @@ export default function EnergyLogForm() {
   const addDevice = () => {
     setDevices([
       ...devices,
-      { id: Date.now().toString(), deviceName: '', category: '', wattage: '', timeInterval: '', customMinutes: '1' }
+      { id: Date.now().toString(), deviceName: '', category: '', wattage: '', timeInterval: '', customMinutes: '60' }
     ]);
   };
 

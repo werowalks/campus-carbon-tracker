@@ -36,6 +36,7 @@ export default function EnergyLogForm() {
   const { addLog, logs, deleteLog } = useEnergy();
   const { devices: catalogDevices, categoryWattage, emissionFactor, getDevicesByCategory, getDeviceByName } = useDevices();
   const [editingLog, setEditingLog] = useState<typeof logs[0] | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
   
   const [devices, setDevices] = useState<DeviceEntry[]>([
     { id: '1', deviceName: '', category: '', wattage: '', timeInterval: '', customMinutes: '60' }

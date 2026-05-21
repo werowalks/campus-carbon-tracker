@@ -26,7 +26,7 @@ interface DeviceEntry {
   category: string;
   wattage: string;
   timeInterval: string;
-  customHours: string;
+  customMinutes: string;
 }
 
 export default function EnergyLogForm() {
@@ -36,13 +36,13 @@ export default function EnergyLogForm() {
   const [editingLog, setEditingLog] = useState<typeof logs[0] | null>(null);
   
   const [devices, setDevices] = useState<DeviceEntry[]>([
-    { id: '1', deviceName: '', category: '', wattage: '', timeInterval: '', customHours: '1' }
+    { id: '1', deviceName: '', category: '', wattage: '', timeInterval: '', customMinutes: '1' }
   ]);
 
   const addDevice = () => {
     setDevices([
       ...devices,
-      { id: Date.now().toString(), deviceName: '', category: '', wattage: '', timeInterval: '', customHours: '1' }
+      { id: Date.now().toString(), deviceName: '', category: '', wattage: '', timeInterval: '', customMinutes: '1' }
     ]);
   };
 
@@ -99,7 +99,7 @@ export default function EnergyLogForm() {
       }
 
       const duration = device.timeInterval === '0'
-        ? (parseInt(device.customHours) || 0) * 60
+        ? (parseInt(device.customMinutes) || 0) * 60
         : parseInt(device.timeInterval);
 
       if (!duration || duration <= 0) {
@@ -127,7 +127,7 @@ export default function EnergyLogForm() {
 
     if (successCount > 0) {
       toast.success(`${successCount} device${successCount > 1 ? 's' : ''} logged successfully!`);
-      setDevices([{ id: '1', deviceName: '', category: '', wattage: '', timeInterval: '', customHours: '1' }]);
+      setDevices([{ id: '1', deviceName: '', category: '', wattage: '', timeInterval: '', customMinutes: '1' }]);
     } else {
       toast.error('Please fill in all required fields');
     }
@@ -135,7 +135,7 @@ export default function EnergyLogForm() {
 
   const calculatePreview = (device: DeviceEntry) => {
     const duration = device.timeInterval === '0'
-      ? (parseInt(device.customHours) || 0) * 60
+      ? (parseInt(device.customMinutes) || 0) * 60
       : parseInt(device.timeInterval) || 0;
     const wattage = parseInt(device.wattage) || 0;
 
@@ -261,14 +261,14 @@ export default function EnergyLogForm() {
                                 className="pl-10"
                                 min={1}
                                 max={24}
-                                value={device.customHours}
+                                value={device.customMinutes}
                                 onChange={(e) => {
                                   const val = parseInt(e.target.value);
                                   if (val > 24) {
                                     toast.error('Duration cannot exceed 24 hours');
                                     return;
                                   }
-                                  updateDevice(device.id, 'customHours', e.target.value);
+                                  updateDevice(device.id, 'customMinutes', e.target.value);
                                 }}
                               />
                             </div>

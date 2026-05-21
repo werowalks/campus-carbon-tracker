@@ -324,8 +324,17 @@ export default function EnergyLogForm() {
         {/* Recent Logs Sidebar */}
         <div>
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-lg">Recent Logs</CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={() => setHistoryOpen(true)}
+              >
+                <History className="w-3.5 h-3.5 mr-1" />
+                View All
+              </Button>
             </CardHeader>
             <CardContent>
               {recentLogs.length > 0 ? (

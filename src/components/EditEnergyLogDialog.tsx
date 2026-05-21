@@ -24,9 +24,7 @@ export default function EditEnergyLogDialog({ log, open, onOpenChange }: EditEne
   const [category, setCategory] = useState(log.category);
   const [deviceName, setDeviceName] = useState(log.device_name);
   const [wattage, setWattage] = useState(log.wattage.toString());
-  const [duration, setDuration] = useState(
-    TIME_INTERVALS.find(t => t.value === log.duration) ? log.duration.toString() : (log.duration / 60).toString()
-  );
+  const [duration, setDuration] = useState(log.duration.toString());
   const [timeInterval, setTimeInterval] = useState(
     TIME_INTERVALS.find(t => t.value === log.duration) ? log.duration.toString() : '0'
   );

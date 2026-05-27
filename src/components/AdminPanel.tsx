@@ -672,7 +672,7 @@ export default function AdminPanel() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {members.map((member) => (
+                      {filteredMembers.map((member) => (
                         <TableRow key={member.user_id}>
                           <TableCell className="font-medium">{member.name}</TableCell>
                           <TableCell className="text-muted-foreground">{member.email}</TableCell>

@@ -888,7 +888,7 @@ export default function AdminPanel() {
                             {log.category}
                           </TableCell>
                           <TableCell className="text-right">{log.wattage}W</TableCell>
-                          <TableCell className="text-right">{log.duration}min</TableCell>
+                          <TableCell className="text-right">{(log.duration / 60).toFixed(log.duration % 60 === 0 ? 0 : 2)}h</TableCell>
                           <TableCell className="text-right">
                             {calculateEnergyKWh(log.wattage, log.duration).toFixed(3)} kWh
                           </TableCell>

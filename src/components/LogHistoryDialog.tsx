@@ -116,7 +116,7 @@ export default function LogHistoryDialog({ open, onOpenChange }: LogHistoryDialo
                         <span className="text-xs text-muted-foreground">{log.category}</span>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {log.timestamp.toLocaleString()} • {log.wattage}W • {log.duration} min
+                        {log.timestamp.toLocaleString()} • {log.wattage}W • {(log.duration / 60).toFixed(log.duration % 60 === 0 ? 0 : 2)} h
                       </p>
                       <p className="text-xs">
                         <span className="font-medium">

@@ -90,25 +90,7 @@ serve(async (req) => {
 
     const totalRows = summary.reduce((s, x) => s + x.count, 0);
 
-    // Find super admin emails
-    const { data: superAdmins, error: roleErr } = await supabase
-      .from("user_roles")
-      .select("user_id")
-      .eq("role", "super_admin");
-    if (roleErr) throw new Error(`Role lookup failed: ${roleErr.message}`);
-
-    const adminIds = (superAdmins ?? []).map((r: any) => r.user_id);
-    let adminEmails: string[] = [];
-    if (adminIds.length > 0) {
-      const { data: profiles, error: profErr } = await supabase
-        .from("profiles")
-        .select("email")
-        .in("user_id", adminIds);
-      if (profErr) throw new Error(`Profile lookup failed: ${profErr.message}`);
-      adminEmails = (profiles ?? []).map((p: any) => p.email).filter(Boolean);
-    }
-    if (adminEmails.length === 0) adminEmails = ["campuswattwatch@gmail.com"];
-
+    const adminEmails = ["campuswattwatch@gmail.com"];
     const resend = new Resend(RESEND_API_KEY);
 
     const summaryHtml = summary

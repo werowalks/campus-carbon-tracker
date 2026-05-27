@@ -68,6 +68,17 @@ export default function AdminPanel() {
   });
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
   const [deletingUser, setDeletingUser] = useState<string | null>(null);
+  const [memberSearch, setMemberSearch] = useState('');
+
+  const filteredMembers = members.filter((m) => {
+    const q = memberSearch.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      m.name.toLowerCase().includes(q) ||
+      m.email.toLowerCase().includes(q) ||
+      m.role.toLowerCase().includes(q)
+    );
+  });
 
   const logs = getAllLogs();
   const stats = getStats();
@@ -628,10 +639,21 @@ export default function AdminPanel() {
                     <CardDescription>View all members and manage their roles</CardDescription>
                   </div>
                 </div>
-                <Button variant="outline" onClick={exportMembersCSV} size="sm" className="gap-2">
-                  <Download className="w-4 h-4" />
-                  Export Members
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search by name, email, or role..."
+                      value={memberSearch}
+                      onChange={(e) => setMemberSearch(e.target.value)}
+                      className="pl-8 h-9 w-full sm:w-64"
+                    />
+                  </div>
+                  <Button variant="outline" onClick={exportMembersCSV} size="sm" className="gap-2">
+                    <Download className="w-4 h-4" />
+                    Export Members
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>

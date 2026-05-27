@@ -347,7 +347,7 @@ export default function EnergyLogForm() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{log.device_name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {log.duration} min • {calculateEnergyKWh(log.wattage, log.duration).toFixed(3)} kWh
+                          {(log.duration / 60).toFixed(log.duration % 60 === 0 ? 0 : 2)} h • {calculateEnergyKWh(log.wattage, log.duration).toFixed(3)} kWh
                         </p>
                       </div>
                       <div className="flex gap-1">

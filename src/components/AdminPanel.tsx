@@ -68,6 +68,17 @@ export default function AdminPanel() {
   });
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
   const [deletingUser, setDeletingUser] = useState<string | null>(null);
+  const [memberSearch, setMemberSearch] = useState('');
+
+  const filteredMembers = members.filter((m) => {
+    const q = memberSearch.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      m.name.toLowerCase().includes(q) ||
+      m.email.toLowerCase().includes(q) ||
+      m.role.toLowerCase().includes(q)
+    );
+  });
 
   const logs = getAllLogs();
   const stats = getStats();
